@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -46,9 +46,12 @@ const ANALYSIS_STAGES = [
 export const Analyze = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const query = searchParams.get("q") || "Stainless steel pressure cooker, 5 litre";
-  const fileName = searchParams.get("file");
+  const query = searchParams.get("q") || location.state?.requirementText || "Stainless steel pressure cooker, 5 litre";
+  const fileName = searchParams.get("file") || location.state?.file?.name;
+  const passedAttributes = location.state?.attributes;
+
 
   const [currentStage, setCurrentStage] = useState(1);
   const [completed, setCompleted] = useState(false);
@@ -104,19 +107,42 @@ export const Analyze = () => {
       </div>
 
       {/* Target Requirement Brief */}
-      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1">
-          Requirement Under Analysis:
-        </span>
-        <p className="text-sm font-medium text-slate-800 leading-relaxed font-sans">
-          "{query}"
-        </p>
-        {fileName && (
-          <span className="inline-flex items-center gap-1.5 text-xs text-blue-700 font-medium mt-2 bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
-            Attached Document: {fileName}
+      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1">
+            Requirement Under Analysis:
           </span>
+          <p className="text-sm font-medium text-slate-800 leading-relaxed font-sans">
+            "{query}"
+          </p>
+          {fileName && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-blue-700 font-medium mt-2 bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
+              Attached Document: {fileName}
+            </span>
+          )}
+        </div>
+
+        {passedAttributes && (
+          <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2 text-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 self-center mr-1">
+              Parameters:
+            </span>
+            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
+              Product: <strong>{passedAttributes.product}</strong>
+            </span>
+            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
+              Material: <strong>{passedAttributes.material}</strong>
+            </span>
+            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
+              Capacity: <strong>{passedAttributes.capacity}</strong>
+            </span>
+            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
+              Application: <strong>{passedAttributes.application}</strong>
+            </span>
+          </div>
         )}
       </div>
+
 
       {/* Progressive Audit Pipeline */}
       <div className="space-y-3">
