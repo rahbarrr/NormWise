@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
   ChevronRight,
@@ -24,13 +24,15 @@ import { ReviewChecklist } from "../components/review/ReviewChecklist";
 import { getHistoryItemById } from "../data/mockHistory";
 import { MOCK_EVIDENCE_RECORDS } from "../data/mockEvidence";
 import { MOCK_CHECKLIST } from "../data/mockReview";
+import { getRecommendation, toggleSaveRecommendation } from "../services/api";
 
 export const RecordDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const record = getHistoryItemById(id);
+  const [record, setRecord] = useState(() => getHistoryItemById(id));
+  const [isLoading, setIsLoading] = useState(true);
 
   // Tabs state
   const initialTab = searchParams.get("tab") || "overview";
@@ -57,6 +59,27 @@ export const RecordDetail = () => {
       setToastMessage("");
     }, 3500);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    getRecommendation(id)
+      .then((data) => {
+        if (isMounted && data) {
+          setRecord(data);
+          setIsSaved(Boolean(data.saved));
+        }
+      })
+      .catch((err) => {
+        console.warn("Using fallback record for detail view:", err.message);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   const handleOpenEvidence = (recordOrId) => {
     if (typeof recordOrId === "string") {

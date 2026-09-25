@@ -1,0 +1,268 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// Enums
+// ----------------------------------------------------
+
+enum Role {
+  PROCUREMENT_OFFICER
+  TECHNICAL_REVIEWER
+  ADMIN
+}
+
+enum StandardStatus {
+  CURRENT
+  SUPERSEDED
+  WITHDRAWN
+  UNDER_REVIEW
+  UNKNOWN
+}
+
+enum RecommendationStatus {
+  PENDING_REVIEW
+  ACCEPTED
+  UNDER_TECHNICAL_REVIEW
+  CLARIFICATION_REQUESTED
+  NOT_APPLICABLE
+}
+
+enum EvidenceType {
+  SCOPE
+  REQUIREMENT
+  MATERIAL
+  CERTIFICATION
+  CURRENTNESS
+  RELATED_STANDARD
+  TEST_METHOD
+}
+
+enum RelationshipType {
+  NORMATIVE_REFERENCE
+  MATERIAL
+  COMPONENT
+  TEST_METHOD
+  SAFETY
+  INSTALLATION
+  EQUIVALENT
+  SUPERSEDED_BY
+  AMENDED_BY
+  OTHER
+}
+
+enum ReviewStatus {
+  PENDING
+  ACCEPTED
+  TECHNICAL_REVIEW
+  CLARIFICATION_REQUESTED
+  NOT_APPLICABLE
+}
+
+enum AuditAction {
+  RECOMMENDATION_CREATED
+  EVIDENCE_REVIEWED
+  NOTE_ADDED
+  REVIEW_REQUESTED
+  CLARIFICATION_REQUESTED
+  RECOMMENDATION_ACCEPTED
+  MARKED_NOT_APPLICABLE
+  DRAFT_SAVED
+}
+
+enum ProcessingStatus {
+  UPLOADED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+// ----------------------------------------------------
+// Models
+// ----------------------------------------------------
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      Role     @default(PROCUREMENT_OFFICER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recommendations Recommendation[]
+  reviews         Review[]
+  auditEvents     AuditEvent[]
+
+  @@map("users")
+}
+
+model Standard {
+  id             String         @id @default(uuid())
+  standardNumber String         @unique
+  title          String
+  edition        String?
+  revision       String?
+  status         StandardStatus @default(CURRENT)
+  description    String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  amendments              StandardAmendment[]
+  recommendationStandards RecommendationStandard[]
+  evidences               Evidence[]
+  relatedStandards        RelatedStandard[]        @relation("StandardToRelated")
+  referencedBy            RelatedStandard[]        @relation("RelatedToStandard")
+
+  @@map("standards")
+}
+
+model StandardAmendment {
+  id              String    @id @default(uuid())
+  standardId      String
+  amendmentNumber String
+  date            DateTime?
+  description     String?
+  status          String?   @default("ACTIVE")
+  createdAt       DateTime  @default(now())
+
+  standard Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@map("standard_amendments")
+}
+
+model Recommendation {
+  id                       String               @id @default(uuid())
+  userId                   String?
+  requirementText          String               @db.Text
+  product                  String?
+  material                 String?
+  capacity                 String?
+  application              String?
+  technicalCharacteristics String?              @db.Text
+  confidence               Int                  @default(85)
+  status                   RecommendationStatus @default(PENDING_REVIEW)
+  saved                    Boolean              @default(false)
+  archived                 Boolean              @default(false)
+  department               String?
+  decisionNotes            String?              @db.Text
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  user                    User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  recommendationStandards RecommendationStandard[]
+  evidence                Evidence[]
+  reviews                 Review[]
+  documents               Document[]
+  auditEvents             AuditEvent[]
+
+  @@map("recommendations")
+}
+
+model RecommendationStandard {
+  id               String   @id @default(uuid())
+  recommendationId String
+  standardId       String
+  matchConfidence  Int      @default(90)
+  reason           String?  @db.Text
+  isPrimary        Boolean  @default(false)
+
+  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  standard       Standard       @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@unique([recommendationId, standardId])
+  @@map("recommendation_standards")
+}
+
+model Evidence {
+  id               String       @id @default(uuid())
+  recommendationId String
+  standardId       String?
+  type             EvidenceType @default(SCOPE)
+  reference        String
+  content          String       @db.Text
+  source           String
+  status           String       @default("Available")
+  createdAt        DateTime     @default(now())
+
+  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  standard       Standard?      @relation(fields: [standardId], references: [id], onDelete: SetNull)
+
+  @@map("evidence")
+}
+
+model RelatedStandard {
+  id                String           @id @default(uuid())
+  standardId        String
+  relatedStandardId String
+  relationshipType  RelationshipType @default(NORMATIVE_REFERENCE)
+
+  standard        Standard @relation("StandardToRelated", fields: [standardId], references: [id], onDelete: Cascade)
+  relatedStandard Standard @relation("RelatedToStandard", fields: [relatedStandardId], references: [id], onDelete: Cascade)
+
+  @@unique([standardId, relatedStandardId])
+  @@map("related_standards")
+}
+
+model Review {
+  id               String       @id @default(uuid())
+  recommendationId String
+  reviewerId       String?
+  status           ReviewStatus @default(PENDING)
+  notes            String?      @db.Text
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  recommendation Recommendation    @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  reviewer       User?             @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  checklist      ReviewChecklist[]
+
+  @@map("reviews")
+}
+
+model ReviewChecklist {
+  id        String  @id @default(uuid())
+  reviewId  String
+  itemKey   String
+  label     String
+  completed Boolean @default(false)
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, itemKey])
+  @@map("review_checklists")
+}
+
+model AuditEvent {
+  id               String      @id @default(uuid())
+  recommendationId String
+  actorId          String?
+  action           AuditAction
+  details          String      @db.Text
+  createdAt        DateTime    @default(now())
+
+  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  actor          User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@map("audit_events")
+}
+
+model Document {
+  id               String           @id @default(uuid())
+  recommendationId String?
+  filename         String
+  fileType         String
+  fileSize         String
+  pageCount        Int              @default(1)
+  processingStatus ProcessingStatus @default(UPLOADED)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  recommendation Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+
+  @@map("documents")
+}
