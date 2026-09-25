@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   FileText,
   ExternalLink,
+  UploadCloud,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
 import { cn } from "../../lib/utils";
@@ -30,6 +31,12 @@ const mainNavItems = [
     path: "/recommend",
     icon: PlusCircle,
     badge: "New",
+  },
+  {
+    name: "Upload Specification",
+    path: "/documents",
+    icon: UploadCloud,
+    badge: null,
   },
   {
     name: "History",

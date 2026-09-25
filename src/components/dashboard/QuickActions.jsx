@@ -21,13 +21,7 @@ export const QuickActions = ({ onUploadClick }) => {
       title: "Upload Specification",
       description: "Batch extract parameters from tender schedules, NITs, and RFP documents.",
       icon: UploadCloud,
-      action: () => {
-        if (onUploadClick) {
-          onUploadClick();
-        } else {
-          document.getElementById("spec-upload-input")?.click();
-        }
-      },
+      action: () => navigate("/documents"),
       buttonText: "Upload PDF / DOCX",
       accent: "text-slate-800 hover:border-slate-300",
     },

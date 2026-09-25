@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
-import { UploadCloud, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { UploadCloud, FileText, ArrowRight } from "lucide-react";
 import { UploadedFileCard } from "./UploadedFileCard";
 import { ValidationMessage } from "./ValidationMessage";
 import { cn } from "../../lib/utils";
@@ -95,13 +96,22 @@ export const FileUpload = ({ file, onFileSelect, onFileRemove }) => {
         </span>
       </div>
 
-      <div className="space-y-1">
-        <h4 className="text-sm font-semibold text-slate-900 tracking-tight">
-          Upload a technical specification
-        </h4>
-        <p className="text-xs text-slate-500 leading-relaxed">
-          Upload a procurement specification or tender document and extract relevant requirements.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <div>
+          <h4 className="text-sm font-semibold text-slate-900 tracking-tight">
+            Upload a technical specification
+          </h4>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Upload a procurement specification or tender document and extract relevant requirements.
+          </p>
+        </div>
+        <Link
+          to="/documents"
+          className="text-xs text-blue-700 hover:text-blue-900 font-semibold inline-flex items-center gap-1 self-start sm:self-auto shrink-0 hover:underline"
+        >
+          <span>Open Document Intelligence</span>
+          <ArrowRight className="w-3 h-3" />
+        </Link>
       </div>
 
       {/* Hidden native input */}

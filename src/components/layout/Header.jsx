@@ -20,6 +20,7 @@ import { cn } from "../../lib/utils";
 const PAGE_TITLES = {
   "/": { title: "Procurement Intelligence Dashboard", section: "Home" },
   "/recommend": { title: "New Recommendation", section: "Dashboard" },
+  "/documents": { title: "Upload Specification", section: "Document Intelligence" },
   "/analyze": { title: "Requirement Technical Analysis", section: "Intelligence Engine" },
 
   "/results": { title: "Standards Recommendation", section: "Analysis" },

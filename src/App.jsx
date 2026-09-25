@@ -9,6 +9,7 @@ import { Evidence } from "./pages/Evidence";
 import { Review } from "./pages/Review";
 import { History } from "./pages/History";
 import { RecordDetail } from "./pages/RecordDetail";
+import { Documents } from "./pages/Documents";
 import { Saved } from "./pages/Saved";
 import { Settings } from "./pages/Settings";
 import { Help } from "./pages/Help";
@@ -20,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/recommend" element={<Recommend />} />
+          <Route path="/documents" element={<Documents />} />
           <Route path="/analyze" element={<Analyze />} />
           <Route path="/results" element={<Results />} />
           <Route path="/evidence" element={<Evidence />} />
