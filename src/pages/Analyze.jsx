@@ -1,235 +1,199 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import {
-  ShieldCheck,
-  CheckCircle2,
-  FileSearch,
-  BookOpen,
-  Scale,
-  ArrowRight,
-  Database,
-  Building2,
-  AlertCircle,
-} from "lucide-react";
+import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { AnalysisHeader } from "../components/analysis/AnalysisHeader";
+import { AnalysisWorkflow } from "../components/analysis/AnalysisWorkflow";
+import { AnalysisDetails } from "../components/analysis/AnalysisDetails";
+import { AnalysisSidebar } from "../components/analysis/AnalysisSidebar";
+import { CancelAnalysisDialog } from "../components/analysis/CancelAnalysisDialog";
+import { AnalysisComplete } from "../components/analysis/AnalysisComplete";
+import { AnalysisError } from "../components/analysis/AnalysisError";
 import { Button } from "../components/ui/Button";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
-import { RECENT_RECOMMENDATIONS } from "../data/mockData";
-
-const ANALYSIS_STAGES = [
-  {
-    id: 1,
-    title: "Parsing Technical Attributes & Materials",
-    description: "Extracting product taxonomy, nominal capacities, pressure/electrical ratings, and metallurgy.",
-    icon: FileSearch,
-  },
-  {
-    id: 2,
-    title: "Scanning BIS National Catalogue & Committees",
-    description: "Matching with Division Councils (MED, ETD, CED, MTD) and active Harmonized System (HS) codes.",
-    icon: BookOpen,
-  },
-  {
-    id: 3,
-    title: "Verifying Quality Control Orders (QCO Mandate)",
-    description: "Checking Ministry of Commerce (DPIIT) & line ministry Gazette statutory enforcement orders.",
-    icon: Scale,
-  },
-  {
-    id: 4,
-    title: "Synthesizing Conformity Assessment & Test Clauses",
-    description: "Drafting verified procurement specification clauses and mandatory NABL lab parameters.",
-    icon: ShieldCheck,
-  },
-];
+import { Card, CardContent } from "../components/ui/Card";
+import { FileQuestion, ArrowRight } from "lucide-react";
+import { getAnalysisDataForQuery } from "../data/mockAnalysis";
 
 export const Analyze = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const query = searchParams.get("q") || location.state?.requirementText || "Stainless steel pressure cooker, 5 litre";
-  const fileName = searchParams.get("file") || location.state?.file?.name;
+  // Retrieve submitted requirement from URL query or location state
+  const queryParam = searchParams.get("q") || location.state?.requirementText;
   const passedAttributes = location.state?.attributes;
 
+  // Analysis data resolved from query / attributes
+  const analysisData = getAnalysisDataForQuery(queryParam || "", passedAttributes);
 
+  // Workflow states
   const [currentStage, setCurrentStage] = useState(1);
-  const [completed, setCompleted] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  // Determine matched demo standard based on query keywords
-  let matchedStandardCode = "IS 2347:2023";
-  if (query.toLowerCase().includes("led") || query.toLowerCase().includes("street") || query.toLowerCase().includes("light")) {
-    matchedStandardCode = "IS 10322 Part 5 / Section 3";
-  } else if (query.toLowerCase().includes("switch") || query.toLowerCase().includes("socket") || query.toLowerCase().includes("electrical")) {
-    matchedStandardCode = "IS 3854:1988";
-  }
-
+  // Automated progression through the 5 stages
   useEffect(() => {
-    const timer1 = setTimeout(() => setCurrentStage(2), 700);
-    const timer2 = setTimeout(() => setCurrentStage(3), 1500);
-    const timer3 = setTimeout(() => setCurrentStage(4), 2300);
-    const timer4 = setTimeout(() => {
+    if (!queryParam) return;
+
+    // Stage 1: 1.5s
+    const t1 = setTimeout(() => {
+      setCurrentStage(2);
+    }, 1500);
+
+    // Stage 2: 2.0s (cumulative 3.5s)
+    const t2 = setTimeout(() => {
+      setCurrentStage(3);
+    }, 3500);
+
+    // Stage 3: 2.0s (cumulative 5.5s)
+    const t3 = setTimeout(() => {
+      setCurrentStage(4);
+    }, 5500);
+
+    // Stage 4: 1.5s (cumulative 7.0s)
+    const t4 = setTimeout(() => {
       setCurrentStage(5);
-      setCompleted(true);
-    }, 3100);
+    }, 7000);
+
+    // Stage 5: 1.5s (cumulative 8.5s) -> completion
+    const t5 = setTimeout(() => {
+      setIsComplete(true);
+    }, 8500);
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+      clearTimeout(t5);
     };
-  }, []);
+  }, [queryParam]);
 
-  const handleProceedToResults = () => {
-    navigate(`/results?standard=${encodeURIComponent(matchedStandardCode)}&q=${encodeURIComponent(query)}`);
+  // Handle Cancel Analysis
+  const handleConfirmCancel = () => {
+    setIsCancelDialogOpen(false);
+    navigate("/recommend");
   };
 
-  return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-200">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-700 animate-ping"></span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-              Procurement Intelligence Engine
-            </span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-1">
-            Analyzing Requirement Conformity
-          </h2>
+  // Handle View Results
+  const handleViewResults = () => {
+    navigate(
+      `/results?standard=${encodeURIComponent(
+        analysisData.recommendedStandard
+      )}&q=${encodeURIComponent(analysisData.requirement)}`,
+      {
+        state: {
+          requirementText: analysisData.requirement,
+          attributes: analysisData.attributes,
+          recommendedStandard: analysisData.recommendedStandard,
+        },
+      }
+    );
+  };
+
+  // Handle Retry
+  const handleRetry = () => {
+    setHasError(false);
+    setIsComplete(false);
+    setCurrentStage(1);
+  };
+
+  // 1. Missing Requirement State
+  if (!queryParam) {
+    return (
+      <div className="max-w-xl mx-auto py-12 px-4 text-center space-y-4 animate-in fade-in duration-200">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400 border border-slate-200">
+          <FileQuestion className="w-6 h-6" />
         </div>
-
-        <Badge variant={completed ? "current" : "blue"} dot>
-          {completed ? "Analysis Complete (100%)" : `Processing Stage ${Math.min(currentStage, 4)} of 4`}
-        </Badge>
-      </div>
-
-      {/* Target Requirement Brief */}
-      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1">
-            Requirement Under Analysis:
-          </span>
-          <p className="text-sm font-medium text-slate-800 leading-relaxed font-sans">
-            "{query}"
+          <h3 className="text-lg font-bold text-slate-900 tracking-tight">
+            No requirement found
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+            Please start a new recommendation before beginning analysis.
           </p>
-          {fileName && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-blue-700 font-medium mt-2 bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
-              Attached Document: {fileName}
-            </span>
-          )}
         </div>
-
-        {passedAttributes && (
-          <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2 text-xs">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 self-center mr-1">
-              Parameters:
-            </span>
-            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
-              Product: <strong>{passedAttributes.product}</strong>
-            </span>
-            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
-              Material: <strong>{passedAttributes.material}</strong>
-            </span>
-            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
-              Capacity: <strong>{passedAttributes.capacity}</strong>
-            </span>
-            <span className="px-2.5 py-1 bg-slate-100 rounded-md text-slate-700 font-medium">
-              Application: <strong>{passedAttributes.application}</strong>
-            </span>
-          </div>
-        )}
-      </div>
-
-
-      {/* Progressive Audit Pipeline */}
-      <div className="space-y-3">
-        {ANALYSIS_STAGES.map((stage) => {
-          const Icon = stage.icon;
-          const isDone = currentStage > stage.id || completed;
-          const isRunning = currentStage === stage.id && !completed;
-          const isPending = currentStage < stage.id && !completed;
-
-          return (
-            <div
-              key={stage.id}
-              className={`p-4 rounded-xl border transition-all duration-200 flex items-start gap-4 ${
-                isDone
-                  ? "bg-white border-slate-200 text-slate-900 shadow-xs"
-                  : isRunning
-                  ? "bg-blue-50/50 border-blue-300 text-slate-900 shadow-xs"
-                  : "bg-slate-50/50 border-slate-200/60 text-slate-400 opacity-60"
-              }`}
-            >
-              <div className="shrink-0 mt-0.5">
-                {isDone ? (
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-300">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                ) : isRunning ? (
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center border border-blue-300 animate-spin">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center border border-slate-200">
-                    <span className="text-xs font-bold font-mono">{stage.id}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-sm font-semibold text-slate-900 leading-tight">
-                    {stage.title}
-                  </h4>
-                  {isDone && (
-                    <span className="text-xs font-semibold text-emerald-700 font-mono">
-                      Verified ✓
-                    </span>
-                  )}
-                  {isRunning && (
-                    <span className="text-xs font-semibold text-blue-700 animate-pulse font-mono">
-                      Running...
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  {stage.description}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Completion Banner */}
-      {completed && (
-        <div className="p-5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in duration-300">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-6 h-6 text-emerald-700 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-bold text-emerald-900">
-                Standards Conformity Verdict Ready
-              </h4>
-              <p className="text-xs text-emerald-700 mt-0.5 leading-relaxed">
-                Identified primary standard <strong className="font-mono">{matchedStandardCode}</strong> with mandatory statutory compliance criteria and proof clauses.
-              </p>
-            </div>
-          </div>
-
+        <div className="pt-2">
           <Button
             variant="primary"
             size="md"
-            onClick={handleProceedToResults}
-            className="w-full sm:w-auto font-semibold bg-blue-700 hover:bg-blue-800 shrink-0"
+            onClick={() => navigate("/recommend")}
+            className="shadow-xs font-medium"
           >
-            <span>View Recommendation Results</span>
+            <span>Start New Recommendation</span>
             <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // 2. Error State
+  if (hasError) {
+    return (
+      <div className="max-w-xl mx-auto py-8">
+        <AnalysisError
+          onRetry={handleRetry}
+          onBack={() => navigate("/recommend")}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-200">
+      {/* Header section with breadcrumbs and requirement brief */}
+      <AnalysisHeader requirement={analysisData.requirement} />
+
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/* LEFT COLUMN: Main Processing Card / Completion Screen */}
+        <div className="lg:col-span-8 space-y-5">
+          {isComplete ? (
+            <AnalysisComplete
+              recommendedStandard={analysisData.recommendedStandard}
+              onViewResults={handleViewResults}
+              onBackToRequirement={() => navigate("/recommend")}
+            />
+          ) : (
+            <AnalysisWorkflow
+              currentStage={currentStage}
+              isComplete={isComplete}
+              analysisData={analysisData}
+            />
+          )}
+
+          {/* Expandable Technical Activity Details */}
+          <AnalysisDetails
+            currentStage={currentStage}
+            isComplete={isComplete}
+          />
+        </div>
+
+        {/* RIGHT COLUMN: Sidebar Summary & Cancel */}
+        <div className="lg:col-span-4 space-y-6">
+          <AnalysisSidebar
+            attributes={analysisData.attributes}
+            potentialMatches={analysisData.potentialMatches}
+            relatedStandards={analysisData.relatedStandards}
+            isComplete={isComplete}
+            onCancelClick={() => setIsCancelDialogOpen(true)}
+          />
+        </div>
+      </div>
+
+      {/* Trust Notice at bottom */}
+      <div className="pt-4 border-t border-slate-200/80 text-center">
+        <p className="text-xs text-slate-500 max-w-3xl mx-auto leading-relaxed">
+          Recommendation results should be reviewed against the applicable source documents before being used in procurement specifications.
+        </p>
+      </div>
+
+      {/* Cancel Confirmation Dialog */}
+      <CancelAnalysisDialog
+        isOpen={isCancelDialogOpen}
+        onClose={() => setIsCancelDialogOpen(false)}
+        onConfirmCancel={handleConfirmCancel}
+      />
     </div>
   );
 };
