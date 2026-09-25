@@ -22,7 +22,7 @@ const PAGE_TITLES = {
   "/recommend": { title: "New Recommendation", section: "Dashboard" },
   "/analyze": { title: "Requirement Technical Analysis", section: "Intelligence Engine" },
 
-  "/results": { title: "Recommendation & Conformity Report", section: "Results" },
+  "/results": { title: "Standards Recommendation", section: "Analysis" },
   "/evidence": { title: "Clause Traceability & Gazette Evidence", section: "Assurance" },
   "/review": { title: "Human Compliance Review Queue", section: "Assurance" },
   "/history": { title: "Historical Recommendations & Audit Log", section: "Records" },
