@@ -1,194 +1,198 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { EvidenceHeader } from "../components/evidence/EvidenceHeader";
+import { RecommendationContext } from "../components/evidence/RecommendationContext";
+import { EvidenceSummary } from "../components/evidence/EvidenceSummary";
+import { TraceabilityMap } from "../components/evidence/TraceabilityMap";
+import { EvidenceFilters } from "../components/evidence/EvidenceFilters";
+import { EvidenceSearch } from "../components/evidence/EvidenceSearch";
+import { EvidenceList } from "../components/evidence/EvidenceList";
+import { EvidenceDrawer } from "../components/evidence/EvidenceDrawer";
+import { RelatedEvidence } from "../components/evidence/RelatedEvidence";
+import { CertificationEvidence } from "../components/evidence/CertificationEvidence";
+import { CurrentnessEvidence } from "../components/evidence/CurrentnessEvidence";
+import { AuditInformation } from "../components/evidence/AuditInformation";
 import {
-  FileCheck2,
-  ShieldCheck,
-  Search,
-  ExternalLink,
-  ChevronRight,
-  Filter,
-  Download,
-  CheckCircle2,
-} from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/Table";
-import { Badge } from "../components/ui/Badge";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-
-const EVIDENCE_ROWS = [
-  {
-    id: "EV-01",
-    standard: "IS 2347:2023",
-    clause: "Clause 6.1",
-    parameter: "Material Grade Compliance",
-    statutoryRef: "DPIIT QCO S.O. 124(E)",
-    testMethod: "Spectrographic Analysis (IS 6911)",
-    verdict: "Compliant",
-    evidenceSummary: "Requires Austenitic SS 304 food-contact surface certification.",
-  },
-  {
-    id: "EV-02",
-    standard: "IS 2347:2023",
-    clause: "Clause 7.2",
-    parameter: "Hydrostatic Proof Pressure",
-    statutoryRef: "BIS Scheme-I Manual",
-    testMethod: "Hydraulic test at 3x nominal operating pressure",
-    verdict: "Compliant",
-    evidenceSummary: "Zero permanent deformation or gasket blow-out required.",
-  },
-  {
-    id: "EV-03",
-    standard: "IS 10322 Part 5",
-    clause: "Clause 3.1",
-    parameter: "Ingress Protection Rating",
-    statutoryRef: "MeitY CRS Order 2021",
-    testMethod: "IS/IEC 60529 Dust chamber & Water jet",
-    verdict: "Under Review",
-    evidenceSummary: "IP66 rating required; test report must be from NABL accredited lab.",
-  },
-  {
-    id: "EV-04",
-    standard: "IS 3854:1988",
-    clause: "Clause 14.1",
-    parameter: "Switch Endurance Rating",
-    statutoryRef: "Electrical Accessories QCO",
-    testMethod: "40,000 make-and-break cycles at 250V AC",
-    verdict: "Compliant",
-    evidenceSummary: "No mechanical or electrical breakdown under 0.8 PF inductive load.",
-  },
-  {
-    id: "EV-05",
-    standard: "IS 4923:2017",
-    clause: "Clause 9.3",
-    parameter: "Tensile & Yield Strength",
-    statutoryRef: "Ministry of Steel QCO",
-    testMethod: "IS 1608 Metallic materials tensile test",
-    verdict: "Compliant",
-    evidenceSummary: "Yield strength YSt 310 certified via Mill Test Certificate.",
-  },
-];
+  EvidenceEmptyState,
+  EvidenceErrorState,
+  EvidenceWarning,
+} from "../components/evidence/EvidenceEmptyState";
+import { MOCK_EVIDENCE_RECORDS } from "../data/mockEvidence";
 
 export const Evidence = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  const filtered = EVIDENCE_ROWS.filter(
-    (r) =>
-      r.standard.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.clause.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.parameter.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const standardParam = searchParams.get("standard") || "IS 2347:2023";
+
+  // State
+  const [evidenceRecords, setEvidenceRecords] = useState(MOCK_EVIDENCE_RECORDS);
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("relevance");
+  const [activeRecord, setActiveRecord] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [hasError, setHasError] = useState(false);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 3500);
+  };
+
+  const handleDownloadReport = () => {
+    showToast("Evidence report generation will be connected to the backend.");
+  };
+
+  const handleOpenDetail = (record) => {
+    setActiveRecord(record);
+    setIsDrawerOpen(true);
+  };
+
+  // Filter and search logic
+  const filteredRecords = evidenceRecords
+    .filter((rec) => {
+      const matchesFilter =
+        activeFilter === "All" || rec.type.toLowerCase() === activeFilter.toLowerCase();
+
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        rec.id.toLowerCase().includes(q) ||
+        rec.standard.toLowerCase().includes(q) ||
+        rec.type.toLowerCase().includes(q) ||
+        rec.supports.toLowerCase().includes(q) ||
+        rec.reference.toLowerCase().includes(q);
+
+      return matchesFilter && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === "type") return a.type.localeCompare(b.type);
+      if (sortBy === "standard") return a.standard.localeCompare(b.standard);
+      if (sortBy === "recent") return b.id.localeCompare(a.id);
+      return 0; // relevance
+    });
+
+  if (hasError) {
+    return (
+      <div className="py-8">
+        <EvidenceErrorState
+          onRetry={() => setHasError(false)}
+          onBack={() => navigate("/results")}
+        />
+      </div>
+    );
+  }
+
+  if (evidenceRecords.length === 0) {
+    return (
+      <div className="py-8">
+        <EvidenceEmptyState onBack={() => navigate("/results")} />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Clause Traceability & Gazette Evidence Matrix
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Trace test requirements, Gazette of India references, and mandatory NABL proof parameters
-          </p>
-        </div>
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-200">
+      {/* 1. Header with breadcrumbs and actions */}
+      <EvidenceHeader
+        onDownloadReport={handleDownloadReport}
+        standardCode={standardParam}
+      />
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => window.print()}
-            className="text-xs"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" />
-            <span>Export Evidence Sheet</span>
-          </Button>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 max-w-md p-4 rounded-xl bg-slate-900 text-white text-xs font-medium flex items-center justify-between gap-3 shadow-2xl border border-slate-750 animate-in fade-in slide-in-from-bottom-3 duration-200"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
+            <span>{toastMessage}</span>
+          </div>
+          <span className="text-[10px] text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded border border-slate-700 shrink-0">
+            Backend Notice
+          </span>
         </div>
-      </div>
+      )}
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Filter by Standard, Clause or Test Parameter..."
-            className="pl-9 text-xs sm:text-sm"
+      {/* 2. Recommendation Context Banner */}
+      <RecommendationContext
+        standard={standardParam}
+        title="Pressure cookers — Specification"
+        confidence={94}
+        status="Current"
+      />
+
+      {/* 3. Evidence Summary Metrics */}
+      <EvidenceSummary count={evidenceRecords.length} />
+
+      {/* 4. Recommendation Traceability Lineage Map */}
+      <TraceabilityMap />
+
+      {/* Warning State for demonstration readiness */}
+      <EvidenceWarning message="Recommendation details are supported by curated demonstration evidence. Always verify source citations prior to procurement tender publication." />
+
+      {/* 5. Filters & Search Section */}
+      <div className="space-y-3 pt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <EvidenceFilters
+            activeFilter={activeFilter}
+            onSelectFilter={setActiveFilter}
           />
         </div>
+
+        <EvidenceSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
       </div>
 
-      {/* Evidence Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Standard & Clause</TableHead>
-              <TableHead>Test Parameter</TableHead>
-              <TableHead>Statutory Reference</TableHead>
-              <TableHead>Test Method Standard</TableHead>
-              <TableHead>Conformity Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>
-                  <div>
-                    <span className="font-mono font-bold text-xs text-blue-900 block">
-                      {row.standard}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-800">
-                      {row.clause}
-                    </span>
-                  </div>
-                </TableCell>
+      {/* 6. Supporting Evidence List */}
+      {filteredRecords.length > 0 ? (
+        <EvidenceList
+          records={filteredRecords}
+          onViewDetails={handleOpenDetail}
+        />
+      ) : (
+        <div className="p-8 text-center bg-white rounded-xl border border-slate-200 text-xs text-slate-500">
+          No evidence records matched your search or filter. Try selecting "All" or clearing the search query.
+        </div>
+      )}
 
-                <TableCell>
-                  <div>
-                    <span className="text-xs font-semibold text-slate-900 block">
-                      {row.parameter}
-                    </span>
-                    <span className="text-[11px] text-slate-500 line-clamp-1">
-                      {row.evidenceSummary}
-                    </span>
-                  </div>
-                </TableCell>
+      {/* 7. Dedicated Evidence Sub-Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        {/* Related Standards Evidence */}
+        <RelatedEvidence onOpenDetail={handleOpenDetail} />
 
-                <TableCell>
-                  <span className="text-xs text-slate-700 font-mono">
-                    {row.statutoryRef}
-                  </span>
-                </TableCell>
+        {/* Certification Evidence */}
+        <CertificationEvidence onOpenDetail={handleOpenDetail} />
+      </div>
 
-                <TableCell>
-                  <span className="text-xs text-slate-600">
-                    {row.testMethod}
-                  </span>
-                </TableCell>
+      {/* 8. Currentness & Version Evidence */}
+      <CurrentnessEvidence />
 
-                <TableCell>
-                  <Badge
-                    variant={row.verdict === "Compliant" ? "current" : "review"}
-                    dot
-                  >
-                    {row.verdict}
-                  </Badge>
-                </TableCell>
+      {/* 9. Audit & Traceability Metadata Information */}
+      <AuditInformation />
 
-                <TableCell className="text-right">
-                  <Link
-                    to={`/results?standard=${encodeURIComponent(row.standard)}`}
-                    className="text-xs font-medium text-blue-700 hover:underline inline-flex items-center gap-1"
-                  >
-                    Report <ChevronRight className="w-3 h-3" />
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+      {/* 10. Subtle Bottom Trust Notice */}
+      <div className="pt-4 border-t border-slate-200/80 text-center">
+        <p className="text-xs text-slate-500 max-w-3xl mx-auto leading-relaxed">
+          NormWise evidence is intended to support review and traceability. Always verify the latest applicable authorized source before using information in procurement specifications.
+        </p>
+      </div>
+
+      {/* 11. Evidence Detail Drawer */}
+      <EvidenceDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        record={activeRecord}
+      />
     </div>
   );
 };
