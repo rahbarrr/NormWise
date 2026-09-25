@@ -8,6 +8,7 @@ import { Results } from "./pages/Results";
 import { Evidence } from "./pages/Evidence";
 import { Review } from "./pages/Review";
 import { History } from "./pages/History";
+import { RecordDetail } from "./pages/RecordDetail";
 import { Saved } from "./pages/Saved";
 import { Settings } from "./pages/Settings";
 import { Help } from "./pages/Help";
@@ -24,6 +25,7 @@ function App() {
           <Route path="/evidence" element={<Evidence />} />
           <Route path="/review" element={<Review />} />
           <Route path="/history" element={<History />} />
+          <Route path="/history/:id" element={<RecordDetail />} />
           <Route path="/saved" element={<Saved />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/help" element={<Help />} />

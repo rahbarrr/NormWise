@@ -66,10 +66,11 @@ export const Header = ({ onOpenMobileMenu, onOpenSearch }) => {
   const notifRef = useRef(null);
   const userRef = useRef(null);
 
-  const currentPage = PAGE_TITLES[location.pathname] || {
-    title: "Standards Intelligence",
-    section: "NormWise",
-  };
+  const currentPage = PAGE_TITLES[location.pathname] || (
+    location.pathname.startsWith("/history/")
+      ? { title: "Recommendation Record Dossier", section: "History" }
+      : { title: "Standards Intelligence", section: "NormWise" }
+  );
 
   useEffect(() => {
     const handleClickOutside = (e) => {

@@ -1,169 +1,260 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  History as HistoryIcon,
-  Search,
-  Filter,
-  Download,
-  Calendar,
-  ChevronRight,
-  ExternalLink,
-  ShieldCheck,
-  Building2,
-} from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/Table";
-import { Card } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-import { AUDIT_HISTORY } from "../data/mockData";
+import React, { useState, useMemo } from "react";
+import { HistoryHeader } from "../components/history/HistoryHeader";
+import { HistoryStats } from "../components/history/HistoryStats";
+import { HistorySearch } from "../components/history/HistorySearch";
+import { HistoryFilters } from "../components/history/HistoryFilters";
+import { HistoryTable } from "../components/history/HistoryTable";
+import { HistoryPagination } from "../components/history/HistoryPagination";
+import { ArchiveDialog } from "../components/history/ArchiveDialog";
+import { EmptyHistory, NoSearchResults } from "../components/history/EmptyHistory";
+import { EvidenceDrawer } from "../components/evidence/EvidenceDrawer";
+import { MOCK_HISTORY_RECORDS, getHistoryStatistics } from "../data/mockHistory";
+import { MOCK_EVIDENCE_RECORDS } from "../data/mockEvidence";
 
 export const History = () => {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Master records state
+  const [records, setRecords] = useState(MOCK_HISTORY_RECORDS);
 
-  const filtered = AUDIT_HISTORY.filter((item) => {
-    const matchesSearch =
-      item.requirement.toLowerCase().includes(search.toLowerCase()) ||
-      item.recommendedStandard.toLowerCase().includes(search.toLowerCase()) ||
-      item.department.toLowerCase().includes(search.toLowerCase());
+  // Filters and search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [confidenceFilter, setConfidenceFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("All");
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("newest");
 
-    const matchesStatus =
-      statusFilter === "all" || item.status.toLowerCase() === statusFilter.toLowerCase();
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
-    return matchesSearch && matchesStatus;
-  });
+  // Dialog and Drawer state
+  const [archiveTargetRecord, setArchiveTargetRecord] = useState(null);
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  const [activeEvidence, setActiveEvidence] = useState(null);
+  const [isEvidenceDrawerOpen, setIsEvidenceDrawerOpen] = useState(false);
+
+  // Toast notification
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 3500);
+  };
+
+  // Toggle saved/bookmark
+  const handleToggleSave = (id) => {
+    setRecords((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, saved: !r.saved } : r))
+    );
+  };
+
+  // Archive handlers
+  const handleRequestArchive = (record) => {
+    setArchiveTargetRecord(record);
+    setIsArchiveDialogOpen(true);
+  };
+
+  const handleConfirmArchive = (id) => {
+    setRecords((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, archived: true } : r))
+    );
+    showToast(`Recommendation ${id} has been archived.`);
+  };
+
+  // Export handlers
+  const handleExportAll = () => {
+    showToast("Record export will be connected to the backend.");
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("All");
+    setConfidenceFilter("All");
+    setDateFilter("All");
+    setSavedOnly(false);
+    setSortBy("newest");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters =
+    searchQuery ||
+    statusFilter !== "All" ||
+    confidenceFilter !== "All" ||
+    dateFilter !== "All" ||
+    savedOnly;
+
+  // Filter & Search Logic
+  const filteredRecords = useMemo(() => {
+    return records
+      .filter((r) => !r.archived) // exclude archived from main history
+      .filter((r) => {
+        // Search
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const matches =
+            r.requirement.toLowerCase().includes(q) ||
+            r.standard.toLowerCase().includes(q) ||
+            r.standardTitle.toLowerCase().includes(q) ||
+            r.id.toLowerCase().includes(q) ||
+            (r.reviewer && r.reviewer.toLowerCase().includes(q));
+          if (!matches) return false;
+        }
+
+        // Status
+        if (statusFilter !== "All" && r.status !== statusFilter) {
+          return false;
+        }
+
+        // Confidence
+        if (confidenceFilter === "High" && r.confidence < 90) return false;
+        if (confidenceFilter === "Medium" && (r.confidence < 75 || r.confidence >= 90))
+          return false;
+        if (confidenceFilter === "Low" && r.confidence >= 75) return false;
+
+        // Saved Only
+        if (savedOnly && !r.saved) return false;
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "oldest") return a.id.localeCompare(b.id);
+        if (sortBy === "confidence_high") return b.confidence - a.confidence;
+        if (sortBy === "confidence_low") return a.confidence - b.confidence;
+        if (sortBy === "status") return a.status.localeCompare(b.status);
+        return b.id.localeCompare(a.id); // newest by default
+      });
+  }, [records, searchQuery, statusFilter, confidenceFilter, dateFilter, savedOnly, sortBy]);
+
+  // Paginated records
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRecords.slice(start, start + pageSize);
+  }, [filteredRecords, currentPage, pageSize]);
+
+  // Dynamic statistics
+  const stats = useMemo(() => getHistoryStatistics(records), [records]);
+
+  // Open Evidence Drawer helper
+  const handleOpenEvidenceDrawer = (evidenceId) => {
+    const found =
+      MOCK_EVIDENCE_RECORDS.find((rec) => rec.id === evidenceId) ||
+      MOCK_EVIDENCE_RECORDS[0];
+    setActiveEvidence(found);
+    setIsEvidenceDrawerOpen(true);
+  };
+
+  const activeTotalRecords = records.filter((r) => !r.archived).length;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Historical Recommendations & Audit Log
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Complete audit trail of standards evaluated for institutional procurement and tender drafting
-          </p>
-        </div>
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-200">
+      {/* 1. Header with Breadcrumb and Actions */}
+      <HistoryHeader onExportAll={handleExportAll} />
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => window.print()}
-            className="text-xs"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" />
-            <span>Export Audit Trail (CSV)</span>
-          </Button>
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 max-w-md p-4 rounded-xl bg-slate-900 text-white text-xs font-medium flex items-center justify-between gap-3 shadow-2xl border border-slate-700 animate-in fade-in slide-in-from-bottom-3 duration-200"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
+            <span>{toastMessage}</span>
+          </div>
+          <span className="text-[10px] text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded border border-slate-700 shrink-0">
+            Audit System
+          </span>
         </div>
-      </div>
+      )}
 
-      {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by product, IS code, or procuring department..."
-            className="pl-9 text-xs sm:text-sm"
+      {/* 2. Compact Statistics Cards */}
+      <HistoryStats stats={stats} />
+
+      {/* 3. Search Field */}
+      <HistorySearch
+        searchQuery={searchQuery}
+        onSearchChange={(q) => {
+          setSearchQuery(q);
+          setCurrentPage(1);
+        }}
+      />
+
+      {/* 4. Filters & Sorting Bar */}
+      <HistoryFilters
+        statusFilter={statusFilter}
+        onStatusChange={(val) => {
+          setStatusFilter(val);
+          setCurrentPage(1);
+        }}
+        confidenceFilter={confidenceFilter}
+        onConfidenceChange={(val) => {
+          setConfidenceFilter(val);
+          setCurrentPage(1);
+        }}
+        dateFilter={dateFilter}
+        onDateChange={(val) => {
+          setDateFilter(val);
+          setCurrentPage(1);
+        }}
+        savedOnly={savedOnly}
+        onSavedToggle={(val) => {
+          setSavedOnly(val);
+          setCurrentPage(1);
+        }}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        onClearFilters={handleClearFilters}
+        hasActiveFilters={hasActiveFilters}
+      />
+
+      {/* 5. Main Content: Table or Empty/NoResults State */}
+      {activeTotalRecords === 0 ? (
+        <EmptyHistory />
+      ) : filteredRecords.length === 0 ? (
+        <NoSearchResults onClearFilters={handleClearFilters} />
+      ) : (
+        <div className="space-y-3">
+          <HistoryTable
+            records={paginatedRecords}
+            onToggleSave={handleToggleSave}
+            onArchiveRequest={handleRequestArchive}
+            onOpenEvidenceDrawer={handleOpenEvidenceDrawer}
+          />
+
+          {/* 6. Pagination */}
+          <HistoryPagination
+            currentPage={currentPage}
+            totalItems={filteredRecords.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
           />
         </div>
+      )}
 
-        <div className="flex items-center gap-2 self-stretch sm:self-auto">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 px-3 rounded-lg border border-slate-300 text-xs sm:text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-          >
-            <option value="all">All Standards Status</option>
-            <option value="current">Current Only</option>
-            <option value="review">Under Review Only</option>
-          </select>
-        </div>
+      {/* 7. Subtle Audit Trust Notice */}
+      <div className="pt-4 border-t border-slate-200/80 text-center">
+        <p className="text-xs text-slate-500 max-w-3xl mx-auto leading-relaxed">
+          Audit information records actions performed within NormWise. In the production system, records should be persisted securely and access-controlled.
+        </p>
       </div>
 
-      {/* History Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Evaluation Ref & Date</TableHead>
-              <TableHead>Requirement & Department</TableHead>
-              <TableHead>Recommended Standard</TableHead>
-              <TableHead>Conformity</TableHead>
-              <TableHead>Confidence</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((row) => (
-              <TableRow
-                key={row.id}
-                className="cursor-pointer hover:bg-slate-50/80"
-                onClick={() =>
-                  navigate(`/results?standard=${encodeURIComponent(row.recommendedStandard)}`)
-                }
-              >
-                <TableCell>
-                  <span className="font-mono text-xs font-semibold text-slate-700 block">
-                    {row.id}
-                  </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                    <Calendar className="w-3 h-3" /> {row.date}
-                  </span>
-                </TableCell>
+      {/* 8. Archive Confirmation Dialog */}
+      <ArchiveDialog
+        isOpen={isArchiveDialogOpen}
+        onClose={() => setIsArchiveDialogOpen(false)}
+        onConfirmArchive={handleConfirmArchive}
+        record={archiveTargetRecord}
+      />
 
-                <TableCell>
-                  <div>
-                    <span className="font-semibold text-sm text-slate-900 block line-clamp-1">
-                      {row.requirement}
-                    </span>
-                    <span className="text-xs text-slate-500 line-clamp-1 mt-0.5">
-                      {row.department}
-                    </span>
-                  </div>
-                </TableCell>
-
-                <TableCell>
-                  <span className="font-mono font-bold text-xs text-blue-900 block">
-                    {row.recommendedStandard}
-                  </span>
-                  <span className="text-xs text-slate-500 line-clamp-1 mt-0.5">
-                    {row.standardTitle}
-                  </span>
-                </TableCell>
-
-                <TableCell>
-                  <Badge
-                    variant={row.status === "Current" ? "current" : "review"}
-                    dot
-                  >
-                    {row.status}
-                  </Badge>
-                </TableCell>
-
-                <TableCell>
-                  <span className="font-mono text-xs font-bold text-slate-800">
-                    {row.confidence}%
-                  </span>
-                </TableCell>
-
-                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                  <Link
-                    to={`/results?standard=${encodeURIComponent(row.recommendedStandard)}`}
-                    className="text-xs font-semibold text-blue-700 hover:underline inline-flex items-center gap-1"
-                  >
-                    Details <ChevronRight className="w-3 h-3" />
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+      {/* 9. Reusable Evidence Drawer */}
+      <EvidenceDrawer
+        isOpen={isEvidenceDrawerOpen}
+        onClose={() => setIsEvidenceDrawerOpen(false)}
+        record={activeEvidence}
+      />
     </div>
   );
 };
