@@ -76,18 +76,21 @@ export const Analyze = () => {
 
   // Handle View Results
   const handleViewResults = () => {
-    navigate(
-      `/results?standard=${encodeURIComponent(
-        analysisData.recommendedStandard
-      )}&q=${encodeURIComponent(analysisData.requirement)}`,
-      {
-        state: {
-          requirementText: analysisData.requirement,
-          attributes: analysisData.attributes,
-          recommendedStandard: analysisData.recommendedStandard,
-        },
-      }
-    );
+    const recId = searchParams.get("id") || location.state?.recommendationId;
+    const std = analysisData.recommendedStandard;
+    const q = analysisData.requirement;
+    const targetUrl = recId
+      ? `/results?id=${encodeURIComponent(recId)}&standard=${encodeURIComponent(std)}&q=${encodeURIComponent(q)}`
+      : `/results?standard=${encodeURIComponent(std)}&q=${encodeURIComponent(q)}`;
+
+    navigate(targetUrl, {
+      state: {
+        recommendationId: recId,
+        requirementText: q,
+        attributes: analysisData.attributes,
+        recommendedStandard: std,
+      },
+    });
   };
 
   // Handle Retry

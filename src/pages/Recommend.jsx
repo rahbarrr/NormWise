@@ -19,6 +19,7 @@ import {
   EXAMPLE_REQUIREMENTS_PHASE2,
   extractSimulatedAttributes,
 } from "../data/mockRequirements";
+import { runRecommendationEngine } from "../services/api";
 
 export const Recommend = () => {
   const [searchParams] = useSearchParams();
@@ -107,7 +108,7 @@ export const Recommend = () => {
   };
 
   // Handle analyze submit
-  const handleStartAnalysis = (e) => {
+  const handleStartAnalysis = async (e) => {
     e.preventDefault();
 
     if (!requirementText.trim() && !uploadedFile) {
@@ -115,14 +116,31 @@ export const Recommend = () => {
       return;
     }
 
+    const targetQuery = requirementText.trim()
+      ? requirementText
+      : `Specification: ${uploadedFile.name}`;
+
     setIsAnalyzing(true);
+    setValidationError("");
 
-    // Simulate navigation with state
-    setTimeout(() => {
-      const targetQuery = requirementText.trim()
-        ? requirementText
-        : `Specification: ${uploadedFile.name}`;
-
+    try {
+      const apiResult = await runRecommendationEngine(targetQuery);
+      navigate(
+        `/analyze?id=${encodeURIComponent(apiResult.recommendationId)}&q=${encodeURIComponent(targetQuery)}&file=${encodeURIComponent(
+          uploadedFile ? uploadedFile.name : ""
+        )}`,
+        {
+          state: {
+            recommendationId: apiResult.recommendationId,
+            apiResult,
+            requirementText: targetQuery,
+            file: uploadedFile ? { name: uploadedFile.name, size: uploadedFile.size } : null,
+            attributes: apiResult.requirement || extractedAttributes,
+          },
+        }
+      );
+    } catch (err) {
+      console.warn("API recommendation error, continuing with client state:", err.message);
       navigate(
         `/analyze?q=${encodeURIComponent(targetQuery)}&file=${encodeURIComponent(
           uploadedFile ? uploadedFile.name : ""
@@ -135,7 +153,9 @@ export const Recommend = () => {
           },
         }
       );
-    }, 400);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const isAnalyzeDisabled = !requirementText.trim() && !uploadedFile;
@@ -233,7 +253,7 @@ export const Recommend = () => {
                   isLoading={isAnalyzing}
                   className="order-1 sm:order-2 font-semibold shadow-xs px-6"
                 >
-                  <span>Analyze Requirement →</span>
+                  <span>{isAnalyzing ? "Analyzing requirement..." : "Analyze Requirement →"}</span>
                 </Button>
               </div>
             </CardContent>

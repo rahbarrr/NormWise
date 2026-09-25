@@ -108,9 +108,15 @@ model Standard {
   edition        String?
   revision       String?
   status         StandardStatus @default(CURRENT)
-  description    String?        @db.Text
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  description        String?        @db.Text
+  scope              String?        @db.Text
+  keywords           String[]       @default([])
+  applicableProducts String[]       @default([])
+  materials          String[]       @default([])
+  applications       String[]       @default([])
+  embedding          Unsupported("vector(1536)")?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   amendments              StandardAmendment[]
   recommendationStandards RecommendationStandard[]

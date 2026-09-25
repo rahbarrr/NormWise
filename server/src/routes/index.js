@@ -2,6 +2,7 @@ import { Router } from "express";
 import standardsRoutes from "./standards.routes.js";
 import recommendationsRoutes from "./recommendations.routes.js";
 import documentsRoutes from "./documents.routes.js";
+import { handleRecommend } from "../controllers/recommendEngine.controller.js";
 
 const apiRouter = Router();
 
@@ -18,6 +19,7 @@ apiRouter.get("/health", (req, res) => {
 });
 
 // Resource routes
+apiRouter.post("/recommend", handleRecommend);
 apiRouter.use("/standards", standardsRoutes);
 apiRouter.use("/recommendations", recommendationsRoutes);
 apiRouter.use("/documents", documentsRoutes);

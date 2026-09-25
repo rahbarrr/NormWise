@@ -193,6 +193,14 @@ export async function getRecommendation(id) {
   }
 }
 
+export async function runRecommendationEngine(requirementText, options = {}) {
+  const res = await apiRequest("/recommend", {
+    method: "POST",
+    body: JSON.stringify({ requirementText, ...options }),
+  });
+  return res.data;
+}
+
 export async function createRecommendation(data) {
   try {
     const res = await apiRequest("/recommendations", {

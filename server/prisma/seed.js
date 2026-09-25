@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding NormWise demonstration database in PostgreSQL...");
+  console.log("Seeding NormWise demonstration database with rich standards metadata...");
 
-  // Clean existing tables in proper order
+  // Clean existing tables in proper foreign-key order
   await prisma.reviewChecklist.deleteMany();
   await prisma.review.deleteMany();
   await prisma.auditEvent.deleteMany();
@@ -45,8 +45,8 @@ async function main() {
 
   console.log("Seeded users (officer, reviewer, admin)");
 
-  // 2. Seed Standards
-  const stdCooker = await prisma.standard.create({
+  // 2. Seed Standards with structured metadata for retrieval and scoring
+  const stdCookerCurrent = await prisma.standard.create({
     data: {
       standardNumber: "IS 2347:2023",
       title: "Pressure cookers — Specification",
@@ -55,6 +55,57 @@ async function main() {
       status: "CURRENT",
       description:
         "DEMO RECORD: Prescribes requirement for domestic and commercial pressure cookers made of aluminum alloys or stainless steel, covering design, material, proof pressure, and safety release mechanisms.",
+      scope:
+        "Specifies requirements for domestic and commercial pressure cookers intended for cooking food under steam pressure, including composite induction bases, dual safety valves, and nominal capacity ratings up to 25 litres.",
+      keywords: [
+        "pressure cooker",
+        "pressure cooking",
+        "stainless steel",
+        "kitchen equipment",
+        "safety valve",
+        "gasket",
+        "canteen",
+        "institutional kitchen",
+        "induction base",
+      ],
+      applicableProducts: [
+        "Pressure Cooker",
+        "Commercial Pressure Cooker",
+        "Domestic Pressure Cooker",
+        "Induction Pressure Cooker",
+        "Steam Pressure Cooker",
+      ],
+      materials: [
+        "Stainless Steel",
+        "Stainless Steel Grade 304",
+        "Aluminum Alloy",
+        "Food-grade Silicone",
+      ],
+      applications: [
+        "Institutional Kitchen",
+        "Domestic Kitchen",
+        "Catering Operations",
+        "Commercial Pantry",
+        "Mess Kitchen",
+      ],
+    },
+  });
+
+  const stdCookerSuperseded = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 2347:2014",
+      title: "Pressure cookers — Specification (Sixth Revision)",
+      edition: "2014",
+      revision: "Sixth Revision",
+      status: "SUPERSEDED",
+      description:
+        "DEMO RECORD: Sixth revision of the domestic pressure cooker specification. Superseded by Seventh Revision (IS 2347:2023).",
+      scope:
+        "Earlier specification for pressure cookers prior to revised safety relief valve testing mandates.",
+      keywords: ["pressure cooker", "superseded", "sixth revision"],
+      applicableProducts: ["Pressure Cooker"],
+      materials: ["Aluminum", "Stainless Steel"],
+      applications: ["Domestic Kitchen"],
     },
   });
 
@@ -67,6 +118,20 @@ async function main() {
       status: "CURRENT",
       description:
         "DEMO RECORD: Specifies requirements for hot-rolled and cold-rolled stainless steel plates, sheets, and strips for utensils, kitchenware, and industrial vessels.",
+      scope:
+        "Covers flat stainless steel materials including Grade 304 austenitic alloy suitable for food-contact cooking vessels.",
+      keywords: [
+        "stainless steel",
+        "steel plate",
+        "steel sheet",
+        "strip",
+        "grade 304",
+        "food grade",
+        "utensils",
+      ],
+      applicableProducts: ["Stainless Steel Sheet", "Plate and Strip", "Raw Material"],
+      materials: ["Stainless Steel Grade 304", "AISI 304", "Austenitic Stainless Steel"],
+      applications: ["Kitchenware Manufacturing", "Pressure Cooker Fabrication", "Industrial Vessels"],
     },
   });
 
@@ -79,6 +144,37 @@ async function main() {
       status: "CURRENT",
       description:
         "DEMO RECORD: Specifies requirements for luminaires for road, street, and other public outdoor lighting, including photometric performance, IP sealing, and electrical safety.",
+      scope:
+        "Applies to roadway and street lighting luminaires using electrical light sources on supply voltages up to 1000V. Covers ingress protection up to IP66 and surge threshold protection.",
+      keywords: [
+        "led street light",
+        "street lighting",
+        "roadway luminaire",
+        "outdoor luminaire",
+        "highway lighting",
+        "ip66",
+        "surge protection",
+        "smart city",
+      ],
+      applicableProducts: [
+        "LED Street Light",
+        "Outdoor LED Street Light Luminaire",
+        "Roadway Luminaire",
+        "Public Street Light",
+      ],
+      materials: [
+        "Die-cast Aluminum",
+        "Toughened Glass",
+        "Extruded Aluminum",
+        "Polycarbonate",
+      ],
+      applications: [
+        "Municipal Highway",
+        "Urban Arterial Roads",
+        "Public Street Lighting",
+        "Smart City Infrastructure",
+        "Expressway Illumination",
+      ],
     },
   });
 
@@ -91,6 +187,80 @@ async function main() {
       status: "CURRENT",
       description:
         "DEMO RECORD: Deals with the safety of electrical appliances for household and similar commercial purposes whose rated voltage is not more than 250 V for single phase appliances.",
+      scope:
+        "Baseline electrical safety rules for commercial and domestic heating, cooking, and motor-driven appliances.",
+      keywords: [
+        "electrical safety",
+        "induction cooking",
+        "cooking hob",
+        "household appliances",
+        "heating appliances",
+        "single phase",
+      ],
+      applicableProducts: [
+        "Induction Cooktop",
+        "Commercial Induction Cooking Hob",
+        "Electric Cooking Range",
+        "Electric Heating Appliance",
+      ],
+      materials: ["Ceramic Glass", "Stainless Steel Chassis", "Insulating Polymer"],
+      applications: [
+        "Railway Base Kitchens",
+        "Commercial Catering",
+        "Domestic Kitchen",
+        "Pantry Operations",
+      ],
+    },
+  });
+
+  const stdFan = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 374:2019",
+      title: "Electric ceiling type fans and regulators — Specification",
+      edition: "2019",
+      revision: "Fourth Revision",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: Specifies requirements for ceiling fans including AC and Brushless DC (BLDC) motor designs, air delivery ratings, and energy service values.",
+      scope:
+        "Covers electric ceiling fans of sweep sizes 600mm to 1500mm with emphasis on energy efficiency and BEE star labeling alignment.",
+      keywords: [
+        "ceiling fan",
+        "bldc ceiling fan",
+        "electric fan",
+        "air delivery",
+        "energy efficient",
+        "bldc motor",
+      ],
+      applicableProducts: [
+        "Ceiling Fan",
+        "BLDC Ceiling Fan",
+        "Electric Ceiling Fan",
+      ],
+      materials: ["Aluminum Blades", "Copper Winding", "Die-cast Aluminum Body"],
+      applications: [
+        "Educational Hostels",
+        "Institutional Buildings",
+        "Offices",
+        "Residential Quarters",
+      ],
+    },
+  });
+
+  const stdWithdrawnPipes = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 1239 (Part 2):1992",
+      title: "Mild steel tubes, tubulars and other wrought steel fittings — Specification",
+      edition: "1992",
+      revision: "Fourth Revision",
+      status: "WITHDRAWN",
+      description:
+        "DEMO RECORD: Withdrawn standard superseded by modernized piping norms. Not recommended for new procurement tenders.",
+      scope: "Historical mild steel pipe fittings specification.",
+      keywords: ["steel tubes", "mild steel", "pipe fittings", "withdrawn"],
+      applicableProducts: ["Steel Tubes", "Fittings"],
+      materials: ["Mild Steel"],
+      applications: ["Low Pressure Gas", "Plumbing"],
     },
   });
 
@@ -98,14 +268,14 @@ async function main() {
   await prisma.standardAmendment.createMany({
     data: [
       {
-        standardId: stdCooker.id,
+        standardId: stdCookerCurrent.id,
         amendmentNumber: "Amendment No. 1",
         date: new Date("2024-03-15"),
         description: "DEMO RECORD: Clarification on testing procedures for secondary relief valves in induction-bottom models.",
         status: "ACTIVE",
       },
       {
-        standardId: stdCooker.id,
+        standardId: stdCookerCurrent.id,
         amendmentNumber: "Amendment No. 2",
         date: new Date("2024-10-01"),
         description: "DEMO RECORD: Editorial update to Annexure B reference standards for food-grade silicone gaskets.",
@@ -122,18 +292,29 @@ async function main() {
   });
 
   // Related Standards
-  await prisma.relatedStandard.create({
-    data: {
-      standardId: stdCooker.id,
-      relatedStandardId: stdSteel.id,
-      relationshipType: "MATERIAL",
-    },
+  await prisma.relatedStandard.createMany({
+    data: [
+      {
+        standardId: stdCookerCurrent.id,
+        relatedStandardId: stdSteel.id,
+        relationshipType: "MATERIAL",
+      },
+      {
+        standardId: stdCookerSuperseded.id,
+        relatedStandardId: stdCookerCurrent.id,
+        relationshipType: "SUPERSEDED_BY",
+      },
+      {
+        standardId: stdSafety.id,
+        relatedStandardId: stdCookerCurrent.id,
+        relationshipType: "SAFETY",
+      },
+    ],
   });
 
-  console.log("Seeded standards, amendments, and relationships");
+  console.log("Seeded standards, amendments, and related standard knowledge graph.");
 
-  // 3. Seed 5 Recommendations with different statuses
-  // Recommendation 1: ACCEPTED
+  // 3. Seed Existing 5 Recommendations
   const rec1 = await prisma.recommendation.create({
     data: {
       id: "REC-2026-0842",
@@ -152,11 +333,10 @@ async function main() {
     },
   });
 
-  // Link Rec 1 standards
   await prisma.recommendationStandard.create({
     data: {
       recommendationId: rec1.id,
-      standardId: stdCooker.id,
+      standardId: stdCookerCurrent.id,
       matchConfidence: 96,
       reason: "Direct specification match for stainless steel pressure cookers with safety valve requirements.",
       isPrimary: true,
@@ -172,12 +352,11 @@ async function main() {
     },
   });
 
-  // Rec 1 Evidences
   await prisma.evidence.createMany({
     data: [
       {
         recommendationId: rec1.id,
-        standardId: stdCooker.id,
+        standardId: stdCookerCurrent.id,
         type: "SCOPE",
         reference: "IS 2347:2023 — Clause 1.1 (Demo Reference)",
         content: "Demonstration excerpt: Covers domestic and commercial pressure cookers intended for cooking foods under pressure.",
@@ -186,7 +365,7 @@ async function main() {
       },
       {
         recommendationId: rec1.id,
-        standardId: stdCooker.id,
+        standardId: stdCookerCurrent.id,
         type: "CERTIFICATION",
         reference: "DPIIT Quality Control Order (Demo)",
         content: "Demonstration record: Domestic Pressure Cookers (Quality Control) Order mandates Scheme I ISI mark certification under IS 2347.",
@@ -195,7 +374,7 @@ async function main() {
       },
       {
         recommendationId: rec1.id,
-        standardId: stdCooker.id,
+        standardId: stdCookerCurrent.id,
         type: "MATERIAL",
         reference: "IS 2347:2023 — Clause 4.2 Material Composition (Demo)",
         content: "Demonstration record: Stainless steel bodies shall conform to Grade 304 of IS 6911 with minimum chromium content of 18%.",
@@ -204,7 +383,7 @@ async function main() {
       },
       {
         recommendationId: rec1.id,
-        standardId: stdCooker.id,
+        standardId: stdCookerCurrent.id,
         type: "CURRENTNESS",
         reference: "BIS Online Standardization Index (Demo)",
         content: "Demonstration record: IS 2347:2023 Seventh Revision is current and active with Amendment No. 1 & 2.",
@@ -214,7 +393,6 @@ async function main() {
     ],
   });
 
-  // Rec 1 Review & Checklist
   const rev1 = await prisma.review.create({
     data: {
       recommendationId: rec1.id,
@@ -233,7 +411,6 @@ async function main() {
     ],
   });
 
-  // Rec 1 Audit Events
   await prisma.auditEvent.createMany({
     data: [
       {
@@ -267,7 +444,7 @@ async function main() {
     ],
   });
 
-  // Recommendation 2: PENDING_REVIEW
+  // Recommendation 2: PENDING_REVIEW (LED Luminaire)
   const rec2 = await prisma.recommendation.create({
     data: {
       id: "REC-2026-0843",
@@ -351,50 +528,6 @@ async function main() {
       isPrimary: true,
     },
   });
-  await prisma.evidence.createMany({
-    data: [
-      {
-        recommendationId: rec3.id,
-        standardId: stdSafety.id,
-        type: "SCOPE",
-        reference: "IS 302 (Part 1):2024 — Clause 1 Scope (Demo)",
-        content: "Demonstration excerpt: General safety rules for household and similar electrical cooking equipment.",
-        source: "BIS Standard Catalog Record (Demo)",
-        status: "Verified",
-      },
-    ],
-  });
-  const rev3 = await prisma.review.create({
-    data: {
-      recommendationId: rec3.id,
-      reviewerId: reviewer.id,
-      status: "TECHNICAL_REVIEW",
-      notes: "Flagged for Electrical Division review regarding industrial commercial continuous ratings.",
-    },
-  });
-  await prisma.reviewChecklist.createMany({
-    data: [
-      { reviewId: rev3.id, itemKey: "scope", label: "Scope & product taxonomy match verified", completed: true },
-      { reviewId: rev3.id, itemKey: "material", label: "Chassis & ceramic surface checked", completed: false },
-      { reviewId: rev3.id, itemKey: "currentness", label: "Current edition IS 302 checked", completed: true },
-    ],
-  });
-  await prisma.auditEvent.createMany({
-    data: [
-      {
-        recommendationId: rec3.id,
-        actorId: officer.id,
-        action: "RECOMMENDATION_CREATED",
-        details: "Recommendation generated for 3.5kW Commercial Induction Range.",
-      },
-      {
-        recommendationId: rec3.id,
-        actorId: reviewer.id,
-        action: "REVIEW_REQUESTED",
-        details: "Requested technical review: Clarify distinction between domestic and commercial catering duty cycles.",
-      },
-    ],
-  });
 
   // Recommendation 4: CLARIFICATION_REQUESTED
   const rec4 = await prisma.recommendation.create({
@@ -417,27 +550,11 @@ async function main() {
   await prisma.recommendationStandard.create({
     data: {
       recommendationId: rec4.id,
-      standardId: stdSafety.id,
+      standardId: stdFan.id,
       matchConfidence: 84,
-      reason: "General electrical safety baseline standard for ceiling fans.",
+      reason: "Electric ceiling fans and regulators specification.",
       isPrimary: true,
     },
-  });
-  await prisma.auditEvent.createMany({
-    data: [
-      {
-        recommendationId: rec4.id,
-        actorId: officer.id,
-        action: "RECOMMENDATION_CREATED",
-        details: "Recommendation generated for BLDC Ceiling Fan procurement.",
-      },
-      {
-        recommendationId: rec4.id,
-        actorId: reviewer.id,
-        action: "CLARIFICATION_REQUESTED",
-        details: "Requested clarification on whether BEE Star Labeling schedule is mandatory for this batch.",
-      },
-    ],
   });
 
   // Recommendation 5: NOT_APPLICABLE
@@ -458,22 +575,6 @@ async function main() {
       decisionNotes: "Item is a custom artistic heritage artifact exempt from standardized factory industrial product norms.",
     },
   });
-  await prisma.auditEvent.createMany({
-    data: [
-      {
-        recommendationId: rec5.id,
-        actorId: officer.id,
-        action: "RECOMMENDATION_CREATED",
-        details: "Initial analysis attempted for handcrafted heritage door panels.",
-      },
-      {
-        recommendationId: rec5.id,
-        actorId: reviewer.id,
-        action: "MARKED_NOT_APPLICABLE",
-        details: "Marked NOT_APPLICABLE: Bespoke artistic craft does not fall under mandatory industrial product standards.",
-      },
-    ],
-  });
 
   // Demo Document metadata record
   await prisma.document.create({
@@ -487,8 +588,7 @@ async function main() {
     },
   });
 
-  console.log("Seeded 5 diverse recommendations with evidence, reviews, audit events, and document metadata.");
-  console.log("Database seed complete!");
+  console.log("Database seeded successfully with standards, knowledge graph, and demonstration recommendations!");
 }
 
 main()

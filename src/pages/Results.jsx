@@ -64,6 +64,31 @@ export const Results = () => {
         if (apiData) {
           // Map backend record to results view shape
           const baseMock = getMockResultForQuery(apiData.requirement || apiData.requirementText || "Pressure cooker");
+          
+          // Map alternative standards
+          const mappedAllied = apiData.standards && apiData.standards.length > 1
+            ? apiData.standards.slice(1).map((s) => ({
+                id: s.id,
+                code: s.standardNumber,
+                title: s.title,
+                relation: s.reason || "Alternative Candidate Standard",
+                confidence: s.matchConfidence || 75,
+              }))
+            : baseMock.alliedStandards;
+
+          // Map evidence if present
+          const mappedEvidence = apiData.evidence && apiData.evidence.length > 0
+            ? apiData.evidence.map((e) => ({
+                id: e.id,
+                category: e.type,
+                clause: e.reference,
+                clauseTitle: e.source,
+                status: e.status || "Verified",
+                excerpt: e.content,
+                relevanceScore: apiData.confidence || 85,
+              }))
+            : baseMock.evidence;
+
           setResult({
             ...baseMock,
             id: apiData.id,
@@ -73,6 +98,11 @@ export const Results = () => {
             confidence: apiData.confidence || baseMock.confidence,
             status: apiData.status,
             decisionNotes: apiData.decisionNotes,
+            matchReasons: apiData.decisionNotes
+              ? [apiData.decisionNotes, ...baseMock.matchReasons.slice(1)]
+              : baseMock.matchReasons,
+            alliedStandards: mappedAllied,
+            evidence: mappedEvidence,
             attributes: {
               product: apiData.product || baseMock.attributes?.product,
               material: apiData.material || baseMock.attributes?.material,
