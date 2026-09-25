@@ -206,8 +206,8 @@ export const Results = () => {
           <ResultActionBar
             onEditRequirement={() => navigate(`/recommend?q=${encodeURIComponent(result.requirement)}`)}
             onSaveResult={handleSaveResult}
-            onAcceptRecommendation={() => setIsAcceptDialogOpen(true)}
-            onRequestReview={() => setIsReviewDialogOpen(true)}
+            onAcceptRecommendation={() => navigate("/review?action=accept")}
+            onRequestReview={() => navigate("/review?action=request_review")}
             onGenerateClause={() => setIsClauseModalOpen(true)}
             isSaved={isSaved}
             isAccepted={result.status === "Accepted"}

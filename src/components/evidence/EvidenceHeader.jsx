@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, ArrowLeft, Download, ShieldCheck } from "lucide-react";
+import { ChevronRight, ArrowLeft, Download, UserCheck } from "lucide-react";
 import { Button } from "../ui/Button";
 
 export const EvidenceHeader = ({ onDownloadReport, standardCode = "IS 2347:2023" }) => {
@@ -32,7 +32,7 @@ export const EvidenceHeader = ({ onDownloadReport, standardCode = "IS 2347:2023"
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start sm:self-auto">
           <Button
             type="button"
             variant="secondary"
@@ -42,6 +42,17 @@ export const EvidenceHeader = ({ onDownloadReport, standardCode = "IS 2347:2023"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1 text-slate-500" />
             <span>Back to Recommendation</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/review")}
+            className="text-xs h-9 font-medium text-blue-700 border-blue-200 hover:bg-blue-50"
+          >
+            <UserCheck className="w-3.5 h-3.5 mr-1 text-blue-600" />
+            <span>Human Review</span>
           </Button>
 
           <Button
