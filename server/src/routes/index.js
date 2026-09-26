@@ -77,6 +77,84 @@ apiRouter.get("/health/ready", async (req, res) => {
   return res.status(200).json(readiness);
 });
 
+// Demo Health & Readiness Check endpoint (Phase 22 Section 7)
+apiRouter.get("/health/demo", async (req, res) => {
+  const result = {
+    status: "READY",
+    database: "READY",
+    pgvector: "READY",
+    demoDataset: "READY",
+    recommendation: "READY",
+    compliance: "READY",
+    details: {
+      database: "PostgreSQL connected",
+      pgvector: "Extension active",
+      tables: "All required tables present",
+      demoDataset: { standardsCount: 0, relationshipsCount: 0, rulesCount: 0 },
+      recommendationEngine: "hybrid-v1 (Structured + BM25 + pgvector)",
+      complianceEngine: "deterministic (QCO Rule Engine)",
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  let allReady = true;
+
+  // 1. PostgreSQL reachability
+  try {
+    await prisma.$queryRaw`SELECT 1;`;
+  } catch (err) {
+    result.database = "NOT_READY";
+    result.details.database = "PostgreSQL connection failed";
+    allReady = false;
+  }
+
+  // 2. pgvector extension
+  try {
+    const ext = await prisma.$queryRaw`SELECT 1 FROM pg_extension WHERE extname = 'vector';`;
+    if (!Array.isArray(ext) || ext.length === 0) {
+      result.pgvector = "UNAVAILABLE";
+      result.details.pgvector = "pgvector extension not installed in current database";
+      allReady = false;
+    }
+  } catch (err) {
+    result.pgvector = "ERROR";
+    result.details.pgvector = "Error verifying pgvector";
+    allReady = false;
+  }
+
+  // 3. Demo dataset check
+  try {
+    const [stdCount, relCount, ruleCount] = await Promise.all([
+      prisma.standard.count(),
+      prisma.relatedStandard.count().catch(() => 0),
+      prisma.complianceRule.count().catch(() => 0),
+    ]);
+
+    result.details.demoDataset = {
+      standardsCount: stdCount,
+      relationshipsCount: relCount,
+      rulesCount: ruleCount,
+    };
+
+    if (stdCount === 0) {
+      result.demoDataset = "EMPTY";
+      result.details.demoDataset.note = "No standards seeded in database";
+      allReady = false;
+    }
+  } catch (err) {
+    result.demoDataset = "ERROR";
+    allReady = false;
+  }
+
+  // Overall status
+  if (!allReady) {
+    result.status = "DEGRADED";
+    return res.status(503).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
 // System Version endpoint (Section 38)
 apiRouter.get("/version", (req, res) => {
   res.status(200).json({

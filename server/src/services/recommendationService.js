@@ -472,3 +472,6 @@ async function getOrCreateDefaultUser(userId) {
     },
   });
 }
+
+export const recommendationService = { recommend };
+export default recommendationService;

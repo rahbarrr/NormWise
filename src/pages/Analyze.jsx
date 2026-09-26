@@ -34,30 +34,30 @@ export const Analyze = () => {
   useEffect(() => {
     if (!queryParam) return;
 
-    // Stage 1: 1.5s
+    // Stage 1: 300ms
     const t1 = setTimeout(() => {
       setCurrentStage(2);
-    }, 1500);
+    }, 300);
 
-    // Stage 2: 2.0s (cumulative 3.5s)
+    // Stage 2: 600ms
     const t2 = setTimeout(() => {
       setCurrentStage(3);
-    }, 3500);
+    }, 600);
 
-    // Stage 3: 2.0s (cumulative 5.5s)
+    // Stage 3: 900ms
     const t3 = setTimeout(() => {
       setCurrentStage(4);
-    }, 5500);
+    }, 900);
 
-    // Stage 4: 1.5s (cumulative 7.0s)
+    // Stage 4: 1200ms
     const t4 = setTimeout(() => {
       setCurrentStage(5);
-    }, 7000);
+    }, 1200);
 
-    // Stage 5: 1.5s (cumulative 8.5s) -> completion
+    // Stage 5: 1500ms -> completion
     const t5 = setTimeout(() => {
       setIsComplete(true);
-    }, 8500);
+    }, 1500);
 
     return () => {
       clearTimeout(t1);

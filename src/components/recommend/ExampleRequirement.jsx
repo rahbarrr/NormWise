@@ -28,15 +28,22 @@ export const ExampleRequirement = ({ selectedId, onSelect }) => {
               )}
             >
               <div>
-                <div className="flex items-center justify-between gap-1.5 mb-1">
-                  <span
-                    className={cn(
-                      "text-xs font-bold leading-tight font-sans",
-                      isSelected ? "text-blue-900" : "text-slate-900 group-hover:text-blue-700"
+                <div className="flex items-start justify-between gap-1.5 mb-1">
+                  <div>
+                    <span
+                      className={cn(
+                        "text-xs font-bold leading-tight font-sans block",
+                        isSelected ? "text-blue-900" : "text-slate-900 group-hover:text-blue-700"
+                      )}
+                    >
+                      {ex.title}
+                    </span>
+                    {ex.badge && (
+                      <span className="inline-block text-[10px] font-medium px-1.5 py-0.5 mt-0.5 rounded bg-slate-100 text-slate-700">
+                        {ex.badge}
+                      </span>
                     )}
-                  >
-                    {ex.title}
-                  </span>
+                  </div>
                   {isSelected && (
                     <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
                       <Check className="w-2.5 h-2.5" />

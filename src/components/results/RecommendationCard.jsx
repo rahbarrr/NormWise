@@ -62,7 +62,9 @@ export const RecommendationCard = (props) => {
           status={data.status || currentnessStatus}
           scopeMatched={data.scopeMatched ?? true}
           amendmentChecked={data.amendmentChecked ?? true}
-          reviewRequired={data.reviewRequired ?? false}
+          reviewRequired={data.reviewRequired ?? true}
+          hasEvidence={Boolean(data.evidence && data.evidence.length > 0)}
+          isDemo={Boolean(data.isDemoDataset ?? true)}
         />
       </div>
 

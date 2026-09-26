@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER\" -c \"cyan.bold,green.bold\" \"npm run client\" \"npm run server\"",
+    "setup": "node scripts/setup-demo.js",
+    "setup:demo": "node scripts/setup-demo.js",
     "client": "vite",
     "server": "npm run dev --prefix server",
     "build": "vite build",

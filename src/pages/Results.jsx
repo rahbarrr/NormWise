@@ -410,7 +410,7 @@ export const Results = () => {
       />
 
       {/* Ambiguous Requirement / Clarification Needed (Section 21) */}
-      {(result.rawStatus === "CLARIFICATION_REQUESTED" || result.status === "Clarification Requested" || (result.clarifyingQuestions && result.clarifyingQuestions.length > 0)) && (
+      {(result.rawStatus === "CLARIFICATION_REQUESTED" || result.rawStatus === "CLARIFICATION_REQUIRED" || result.status === "Clarification Requested" || result.status === "CLARIFICATION_REQUIRED" || (result.clarifyingQuestions && result.clarifyingQuestions.length > 0)) && (
         <div className="p-5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 space-y-3 shadow-xs">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
