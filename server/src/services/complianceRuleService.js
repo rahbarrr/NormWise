@@ -479,3 +479,5 @@ export const complianceRuleService = {
     });
   },
 };
+
+export default complianceRuleService;

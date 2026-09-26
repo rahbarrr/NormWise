@@ -1,0 +1,37 @@
+{
+  "caseId": "RC-OT-003",
+  "category": "other-authorized-categories",
+  "caseType": "CLEAR",
+  "requirementText": "High density polyethylene (HDPE) pipes for potable water distribution network, PE 100 grade, pressure rating PN 10, conforming to IS 4984:2016.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "HDPE Pipe",
+    "material": "Polyethylene (PE 100)",
+    "application": "Potable Water Supply",
+    "capacity": "PN 10",
+    "technicalCharacteristics": [
+      "PE 100 Grade",
+      "PN 10 Pressure"
+    ],
+    "intendedUse": "Municipal Water Distribution",
+    "relevantTerminology": [
+      "HDPE Pipes",
+      "PE 100",
+      "PN 10"
+    ]
+  },
+  "expectedStandards": ["IS 4984:2016"],
+  "acceptableAlternatives": ["IS 4984"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 5 Material Specification (PE 100)",
+    "Clause 8 Hydrostatic Pressure Testing"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Verified municipal civil engineering piping case conforming to IS 4984.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 4984:2016 High Density Polyethylene Pipes for Water Supply"
+}

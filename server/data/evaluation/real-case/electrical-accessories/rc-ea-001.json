@@ -1,0 +1,38 @@
+{
+  "caseId": "RC-EA-001",
+  "category": "electrical-accessories",
+  "caseType": "CLEAR",
+  "requirementText": "Procurement of 6A and 16A modular flush-type piano switches for domestic and institutional building wiring installations, 240V AC, conforming to IS 3854 with ISI mark.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Modular Switch",
+    "material": "Polycarbonate",
+    "application": "Building Wiring",
+    "capacity": "6A / 16A, 240V AC",
+    "technicalCharacteristics": [
+      "Modular",
+      "Flush-type",
+      "ISI Mark"
+    ],
+    "intendedUse": "Fixed Electrical Installation",
+    "relevantTerminology": [
+      "Piano Switch",
+      "Modular Switch",
+      "Flush-type"
+    ]
+  },
+  "expectedStandards": ["IS 3854:1997"],
+  "acceptableAlternatives": ["IS 3854"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 8 Marking and Documentation",
+    "Clause 13 Breaking Capacity Test"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Verified standard electrical building accessory case matching IS 3854.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 3854:1997 Specification for Switches for Domestic and Similar Fixed Electrical Installations"
+}

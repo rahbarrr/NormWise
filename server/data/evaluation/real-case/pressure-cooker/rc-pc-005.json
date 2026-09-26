@@ -1,0 +1,32 @@
+{
+  "caseId": "RC-PC-005",
+  "category": "pressure-cooker",
+  "caseType": "MULTILINGUAL",
+  "requirementText": "संस्थागत रसोई के लिए 5 लीटर क्षमता वाले स्टेनलेस स्टील प्रेशर कुकर की आपूर्ति, खाद्य ग्रेड सामग्री और आईएसआई मार्क अनिवार्य।",
+  "language": "hi",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Stainless Steel",
+    "application": "Institutional Kitchen",
+    "capacity": "5 Litre",
+    "technicalCharacteristics": ["Food Grade", "ISI Mark"],
+    "intendedUse": "Institutional Cooking",
+    "relevantTerminology": ["प्रेशर कुकर", "स्टेनलेस स्टील", "आईएसआई मार्क"]
+  },
+  "expectedStandards": ["IS 2347:2023"],
+  "acceptableAlternatives": ["IS 2347"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "MATERIAL", "standardNumber": "IS 6911:2017" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 5.1 Material Specifications",
+    "Clause 8 Pressure Testing"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Hindi language counterpart to RC-PC-001. Engine must translate/normalize Indic terms without corrupting technical constraints or losing IS 2347 association.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Multilingual Benchmark Dataset; BIS IS 2347:2023"
+}

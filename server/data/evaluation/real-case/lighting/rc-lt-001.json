@@ -1,0 +1,43 @@
+{
+  "caseId": "RC-LT-001",
+  "category": "lighting",
+  "caseType": "CLEAR",
+  "requirementText": "Procurement of 90W outdoor LED street lighting luminaires, CCT 5700K, minimum IP66 ingress protection, surge protection 10kV, LM-79 and LM-80 test reports required, BIS registration under CRS mandatory.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "LED Street Lighting Luminaire",
+    "material": "Die-Cast Aluminium",
+    "application": "Outdoor Road / Street Lighting",
+    "capacity": "90W",
+    "technicalCharacteristics": [
+      "IP66",
+      "5700K",
+      "10kV Surge Protection",
+      "LM-79",
+      "LM-80"
+    ],
+    "intendedUse": "Public Road Illumination",
+    "relevantTerminology": [
+      "LED Luminaire",
+      "Street Lighting",
+      "CRS Registration"
+    ]
+  },
+  "expectedStandards": ["IS 10322 (Part 5/Sec 3):2012"],
+  "acceptableAlternatives": ["IS 10322"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "SAFETY", "standardNumber": "IS 16102 (Part 1):2012" },
+    { "type": "COMPONENT", "standardNumber": "IS 16103 (Part 1):2012" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 5 Construction and Ingress Protection IP66",
+    "MeitY Compulsory Registration Scheme (CRS) Mandate"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Verified municipal tender case for street lighting. Must match IS 10322 (Part 5/Sec 3) with CRS compliance mandate.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 10322 (Part 5/Sec 3):2012; MeitY Electronics and Information Technology Goods (CRO) 2021"
+}

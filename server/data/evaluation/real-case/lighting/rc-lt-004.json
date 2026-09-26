@@ -1,0 +1,34 @@
+{
+  "caseId": "RC-LT-004",
+  "category": "lighting",
+  "caseType": "MULTILINGUAL",
+  "requirementText": "रस्त्यांच्या दिव्यांसाठी 90W आउटडोअर एलईडी स्ट्रीट लाइट ल्युमिनेअर्स, किमान IP66 संरक्षण आणि बीआयएस नोंदणी आवश्यक.",
+  "language": "mr",
+  "expectedAttributes": {
+    "product": "LED Street Light Luminaire",
+    "material": null,
+    "application": "Outdoor Road / Street Lighting",
+    "capacity": "90W",
+    "technicalCharacteristics": [
+      "IP66",
+      "BIS Registration"
+    ],
+    "intendedUse": "Street Lighting",
+    "relevantTerminology": ["एलईडी स्ट्रीट लाइट", "ल्युमिनेअर्स", "बीआयएस नोंदणी"]
+  },
+  "expectedStandards": ["IS 10322 (Part 5/Sec 3):2012"],
+  "acceptableAlternatives": ["IS 10322"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "COMPONENT", "standardNumber": "IS 16103 (Part 1):2012" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "BIS Compulsory Registration Scheme (CRS) Proof"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Marathi language evaluation case for street lighting. Tests cross-linguistic capability on West Indian procurement tenders.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Marathi Linguistic Benchmark"
+}

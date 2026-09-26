@@ -1,0 +1,36 @@
+{
+  "caseId": "RC-EA-002",
+  "category": "electrical-accessories",
+  "caseType": "CLEAR",
+  "requirementText": "Supply of 3-pin 16A shuttered electrical socket outlets and matching molded plugs for household and office electrical distribution, conforming to IS 1293:2019.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Plugs and Socket-Outlets",
+    "material": null,
+    "application": "Household and Office",
+    "capacity": "16A, 250V",
+    "technicalCharacteristics": [
+      "3-pin",
+      "Shuttered"
+    ],
+    "intendedUse": "Power Distribution",
+    "relevantTerminology": [
+      "Socket-Outlets",
+      "Molded Plugs"
+    ]
+  },
+  "expectedStandards": ["IS 1293:2019"],
+  "acceptableAlternatives": ["IS 1293"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "DPIIT Plugs and Socket-Outlets Quality Control Order",
+    "Clause 9 Verification of Dimensions"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Verified socket-outlet requirement conforming to current IS 1293 revision.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 1293:2019 Plugs and Socket-Outlets for Household and Similar Purposes"
+}

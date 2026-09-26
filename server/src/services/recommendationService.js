@@ -403,8 +403,49 @@ export async function recommend(requirementText, options = {}) {
     },
     ...(options.debug ? {
       debug: {
+        normalizedRequirement: multilingual.normalizedText || cleanSearchText,
+        extractedAttributes: extracted,
+        lexicalCandidates: retrievedCandidates
+          .filter((c) => (c.retrievedBy || []).includes("lexical") || (c.retrievedBy || []).includes("fts"))
+          .map((c) => ({ standardNumber: c.standardNumber, title: c.title })),
+        vectorCandidates: retrievedCandidates
+          .filter((c) => (c.retrievedBy || []).includes("vector") || (c.retrievedBy || []).includes("pgvector"))
+          .map((c) => ({ standardNumber: c.standardNumber, title: c.title })),
+        structuredCandidates: retrievedCandidates
+          .filter((c) => (c.retrievedBy || []).includes("structured"))
+          .map((c) => ({ standardNumber: c.standardNumber, title: c.title })),
+        mergedCandidates: retrievedCandidates.map((c) => ({
+          standardNumber: c.standardNumber,
+          title: c.title,
+          retrievedBy: c.retrievedBy,
+        })),
+        scoreComponents: topCandidate.scoreBreakdown || { totalScore: topCandidate.score },
+        currentnessFiltering: {
+          currentnessStatus: currentness.status,
+          canProceedAsPrimary: currentness.canProceedAsPrimary,
+          notice: currentness.notice,
+        },
+        relatedStandards: relatedStandards,
+        complianceEvaluation: compliance,
+        finalRanking: scoredCandidates.slice(0, 10).map((c, idx) => ({
+          rank: idx + 1,
+          standardNumber: c.standardNumber,
+          score: c.score,
+          status: c.status,
+        })),
+        explanationInputs: {
+          requirement: extracted,
+          candidate: {
+            standardNumber: topCandidate.standardNumber,
+            title: topCandidate.title,
+            status: topCandidate.status,
+          },
+          currentness,
+          certification,
+          relatedStandardsCount: (relatedStandards || []).length,
+          evidenceCount: (evidence || []).length,
+        },
         retrievedBy: topCandidate.retrievedBy,
-        scoreBreakdown: topCandidate.scoreBreakdown,
         candidateCount: retrievedCandidates.length,
         candidateSources: retrievedCandidates.map((c) => ({
           standardNumber: c.standardNumber,

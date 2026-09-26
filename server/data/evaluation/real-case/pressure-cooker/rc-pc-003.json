@@ -1,0 +1,41 @@
+{
+  "caseId": "RC-PC-003",
+  "category": "pressure-cooker",
+  "caseType": "MULTIPLE_STANDARDS",
+  "requirementText": "Supply of domestic pressure cookers made with cold-rolled stainless steel plate according to IS 6911, fitted with vulcanized rubber sealing gaskets conforming to IS 7466, for assembly into complete units under IS 2347.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Domestic Pressure Cooker",
+    "material": "Stainless Steel",
+    "application": "Domestic",
+    "capacity": null,
+    "technicalCharacteristics": [
+      "Cold-Rolled",
+      "Vulcanized Rubber Gasket"
+    ],
+    "intendedUse": "Domestic Cooking",
+    "relevantTerminology": [
+      "Pressure Cooker",
+      "Rubber Gasket",
+      "Stainless Steel Plate"
+    ]
+  },
+  "expectedStandards": ["IS 2347:2023"],
+  "acceptableAlternatives": ["IS 2347"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "MATERIAL", "standardNumber": "IS 6911:2017" },
+    { "type": "COMPONENT", "standardNumber": "IS 7466:1994" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 5 Materials and Components",
+    "Clause 5.1 Stainless Steel Body",
+    "Clause 5.4 Gasket"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Complex multi-standard tender distinguishing primary end-product standard IS 2347 from allied material IS 6911 and component IS 7466 standards.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 2347:2023 Section 5; BIS Directory of Allied Standards"
+}

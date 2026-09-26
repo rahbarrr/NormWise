@@ -1,0 +1,27 @@
+{
+  "caseId": "RC-OT-005",
+  "category": "other-authorized-categories",
+  "caseType": "CLEAR",
+  "requirementText": "Solar photovoltaic hybrid inverters for agricultural grid-tie pump systems with bidirectional telemetry.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Solar Hybrid Inverter",
+    "material": null,
+    "application": "Agricultural Grid-Tie Pump",
+    "capacity": null,
+    "technicalCharacteristics": ["Bidirectional Telemetry", "Hybrid Inverter"],
+    "intendedUse": "Solar Agricultural Pumping",
+    "relevantTerminology": ["Solar Inverter", "Grid-Tie"]
+  },
+  "expectedStandards": [],
+  "acceptableAlternatives": [],
+  "expectedCurrentness": "UNKNOWN",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "UNKNOWN",
+  "expectedEvidenceRequirements": [],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "UNVERIFIED",
+  "notes": "Emerging standard domain currently under review by BIS technical committee. Marked UNVERIFIED to avoid inflating accuracy metrics with ungrounded gold standard labels.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "Pending formal BIS technical committee gazette review"
+}

@@ -1,0 +1,27 @@
+{
+  "caseId": "RC-PC-006",
+  "category": "pressure-cooker",
+  "caseType": "PARTIAL_SPEC",
+  "requirementText": "Stainless steel pressure cooker for midday meal kitchen.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Stainless Steel",
+    "application": "Midday Meal Kitchen",
+    "capacity": null,
+    "technicalCharacteristics": [],
+    "intendedUse": "Midday Meal Cooking",
+    "relevantTerminology": ["Pressure Cooker", "Stainless Steel"]
+  },
+  "expectedStandards": ["IS 2347:2023"],
+  "acceptableAlternatives": ["IS 2347"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "REQUIRES_REVIEW",
+  "expectedEvidenceRequirements": [],
+  "ambiguityLevel": "MODERATE",
+  "verificationLevel": "VERIFIED",
+  "notes": "Partial specification lacking nominal volume capacity (litres). System should output candidate while suggesting clarification for exact volume classification under IS 2347 Table 1.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 2347:2023 Clause 4.1 Nominal Capacities"
+}

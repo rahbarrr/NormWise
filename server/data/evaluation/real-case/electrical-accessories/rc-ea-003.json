@@ -1,0 +1,27 @@
+{
+  "caseId": "RC-EA-003",
+  "category": "electrical-accessories",
+  "caseType": "AMBIGUOUS",
+  "requirementText": "Electric switchboard plug.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Plug",
+    "material": null,
+    "application": null,
+    "capacity": null,
+    "technicalCharacteristics": [],
+    "intendedUse": null,
+    "relevantTerminology": ["Plug"]
+  },
+  "expectedStandards": ["IS 1293:2019"],
+  "acceptableAlternatives": ["IS 1293", "IS 3854:1997"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "INSUFFICIENT_EVIDENCE",
+  "expectedEvidenceRequirements": [],
+  "ambiguityLevel": "HIGH",
+  "verificationLevel": "VERIFIED",
+  "notes": "Extremely brief query omitting current rating (6A vs 16A), pin configuration (2-pin vs 3-pin), and plug vs socket distinction. Must request clarification.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Electrical Ambiguity Evaluation Suite"
+}

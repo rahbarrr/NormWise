@@ -1,0 +1,40 @@
+{
+  "caseId": "RC-PC-001",
+  "category": "pressure-cooker",
+  "caseType": "CLEAR",
+  "requirementText": "Procurement of 5 litre capacity stainless steel pressure cookers for commercial institutional canteens, constructed with AISI 304 food-grade stainless steel body and lid, equipped with metallic safety plug and gasket release system, conforming to IS 2347.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Stainless Steel",
+    "application": "Commercial Canteen",
+    "capacity": "5 Litre",
+    "technicalCharacteristics": [
+      "AISI 304",
+      "Safety Plug",
+      "Gasket Release System"
+    ],
+    "intendedUse": "Institutional Cooking",
+    "relevantTerminology": [
+      "Pressure Cooker",
+      "Food Grade Stainless Steel"
+    ]
+  },
+  "expectedStandards": ["IS 2347:2023"],
+  "acceptableAlternatives": ["IS 2347"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "MATERIAL", "standardNumber": "IS 6911:2017" },
+    { "type": "COMPONENT", "standardNumber": "IS 7466:1994" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 5.1 Material Specifications",
+    "Clause 8 Operating Pressure and Safety Release Test"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Clear verified baseline requirement for commercial pressure cookers with mandatory ISI certification under DPIIT QCO.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 2347:2023 Gazetted Specification; DPIIT Quality Control Order S.O. 2294(E)"
+}

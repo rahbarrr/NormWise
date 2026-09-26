@@ -576,12 +576,15 @@ model EvaluationRun {
   name           String
   engineVersion  String             @default("hybrid-v1")
   datasetVersion String             @default("2026.09")
+  retrievalMode  String?            @default("hybrid")
+  embeddingModel String?            @default("text-embedding-3-small")
   totalCases     Int                @default(0)
   completedCases Int                @default(0)
   failedCases    Int                @default(0)
   metrics        Json?
   startedAt      DateTime?
   completedAt    DateTime?
+  createdBy      String?
   createdAt      DateTime           @default(now())
 
   results        EvaluationResult[]
@@ -595,6 +598,9 @@ model EvaluationResult {
   caseId                String
   status                String        @default("SUCCESS")
   evaluationType        String        @default("STANDARD_RETRIEVAL")
+  verificationLevel     String?       @default("VERIFIED")
+  expectedOutcome       String?
+  actualOutcome         String?
   requirement           String        @db.Text
   language              String        @default("EN")
   expectedStandardIds   Json          @default("[]")
@@ -611,6 +617,13 @@ model EvaluationResult {
   extractedAttributes   Json?
   expectedAttributes    Json?
   attributeMatches      Json?
+  evidenceCoverage      Json?
+  complianceOutcome     Json?
+  retrievalComparison   Json?
+  humanReviewDecision   String?
+  humanReviewNotes      String?       @db.Text
+  humanReviewerId       String?
+  humanReviewedAt       DateTime?
   processingTimeMs      Int?
   notes                 String?       @db.Text
   createdAt             DateTime      @default(now())

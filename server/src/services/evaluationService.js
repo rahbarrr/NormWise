@@ -1,19 +1,21 @@
 /**
- * NormWise Recommendation Quality Evaluation & Benchmarking Engine (Phase 17)
+ * NormWise Recommendation Quality Evaluation & Benchmarking Engine (Phase 17 & Phase 21)
  *
- * Calls the REAL production recommendation pipeline (recommend).
- * Computes:
- * - Retrieval Metrics: Recall@1, Recall@3, Recall@5, Recall@10, MRR
- * - Attribute Extraction: Product, Material, Application, Capacity, Technical Specs
- * - Clarification Precision & Recall
- * - Currentness Safety Compliance (CURRENT, SUPERSEDED, WITHDRAWN, UNKNOWN)
- * - Evidence Coverage & Matrix Breakdown
- * - Retrieval Method Comparison (Structured, Lexical, Vector, Hybrid)
- * - Threshold Analysis (0.60 to 0.80)
- * - Score Distribution Buckets
- * - Multilingual Analysis across Indic Languages
- * - Latency & Performance Benchmarks (avg, median, p95)
- * - Error Classification & Failure Explanation
+ * Implements Real-Case Validation, Empirical Benchmarks, and Multi-Signal Diagnostic Testing:
+ * 1. Real Validation Dataset Loading (Categorized, Gold-Standard Verification Levels)
+ * 2. Case Type Handlers (Clear, Ambiguous, Multiple Standards, Outdated, No Match, Multilingual, Partial)
+ * 3. Recommendation Evaluation: Recall@1, Recall@3, Recall@5, Recall@10, MRR on verified cases
+ * 4. Attribute Extraction Evaluation: Exact, Partial, Missing, Incorrect, Uncertain
+ * 5. Currentness Evaluation: CURRENT, SUPERSEDED, WITHDRAWN, UNDER_REVIEW, UNKNOWN
+ * 6. Ambiguity Handling Evaluation: CLARIFICATION_REQUIRED, INSUFFICIENT_EVIDENCE, NO_MATCH
+ * 7. Related-Standard Graph Evaluation: Test Method, Safety, Component, Material, Normative Reference
+ * 8. Compliance & QCO Rules Evaluation: Deterministic matching vs LLM hallucination guards
+ * 9. Evidence Coverage & Groundedness Classification: SUPPORTED, PARTIALLY_SUPPORTED, UNSUPPORTED
+ * 10. Multilingual Preservation: Indic linguistic normalization & domain terminology stability
+ * 11. Multi-Strategy Retrieval Comparison: Structured vs Lexical vs Vector vs Hybrid
+ * 12. Standardized Error Taxonomy (13 Categories)
+ * 13. Human Validation Feedback Loop
+ * 14. Reproducibility & Regression Tracking
  */
 
 import fs from "fs";
@@ -21,15 +23,29 @@ import path from "path";
 import { fileURLToPath } from "url";
 import prisma from "../config/db.js";
 import { recommend } from "./recommendationService.js";
-import { classifyFailure, explainFailure, ERROR_CATEGORIES } from "./errorAnalysisService.js";
+import { classifyFailure, ERROR_CATEGORIES } from "./errorAnalysisService.js";
+import {
+  retrieveStructuredCandidates,
+  retrieveLexicalCandidates,
+  retrieveVectorCandidates,
+  retrieveCandidates,
+} from "./retrievalService.js";
+import complianceRuleService from "./complianceRuleService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Loads evaluation cases from server/data/evaluation/ recursively
- * @param {Object} options - { datasetDir, filterCategory, limit }
- * @returns {Array<Object>} List of evaluation test case objects
+ * Normalizes text for comparison
+ */
+export function normalizeAttr(str) {
+  if (!str || typeof str !== "string") return "";
+  return str.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+}
+
+/**
+ * Loads evaluation cases recursively from server/data/evaluation/
+ * Supports Phase 21 real-case schema & backward-compatible Phase 17 schema
  */
 export function loadEvaluationCases(options = {}) {
   const baseDir = options.datasetDir || path.resolve(__dirname, "../../data/evaluation");
@@ -38,13 +54,14 @@ export function loadEvaluationCases(options = {}) {
   const testCases = [];
 
   function scanDir(dir) {
+    if (!fs.existsSync(dir)) return;
     const entries = fs.readdirSync(dir, { withFileTypes: true });
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
+
       if (entry.isDirectory()) {
-        // Skip multilingual directory if user didn't request multilingual specifically,
-        // or include if scanning all
-        if (entry.name === "multilingual" && !options.includeMultilingual) {
+        if (entry.name === "multilingual" && !options.includeMultilingual && !options.category) {
           continue;
         }
         scanDir(fullPath);
@@ -52,14 +69,59 @@ export function loadEvaluationCases(options = {}) {
         try {
           const raw = fs.readFileSync(fullPath, "utf-8");
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            parsed.forEach((c) => {
-              if (c && c.id && c.requirement) {
-                testCases.push({ ...c, _sourceFile: path.relative(baseDir, fullPath) });
-              }
-            });
-          } else if (parsed && parsed.id && parsed.requirement) {
-            testCases.push({ ...parsed, _sourceFile: path.relative(baseDir, fullPath) });
+
+          const items = Array.isArray(parsed) ? parsed : [parsed];
+          for (const c of items) {
+            if (!c) continue;
+
+            const caseId = c.caseId || c.id;
+            const requirement = c.requirementText || c.requirement;
+            if (!caseId || !requirement) continue;
+
+            // Normalize schema properties
+            const normalizedCase = {
+              ...c,
+              id: caseId,
+              caseId: caseId,
+              requirement: requirement,
+              requirementText: requirement,
+              category: c.category || (fullPath.includes("pressure-cooker") ? "pressure-cooker" : fullPath.includes("lighting") ? "lighting" : fullPath.includes("electrical") ? "electrical-accessories" : "other-authorized-categories"),
+              caseType: c.caseType || c.evaluationType || "CLEAR",
+              language: c.language || "en",
+              expectedAttributes: c.expectedAttributes || {},
+              expectedStandards: c.expectedStandards || c.expectedStandardIds || [],
+              expectedStandardIds: c.expectedStandards || c.expectedStandardIds || [],
+              acceptableAlternatives: c.acceptableAlternatives || c.acceptableStandardIds || [],
+              acceptableStandardIds: c.acceptableAlternatives || c.acceptableStandardIds || [],
+              expectedCurrentness: c.expectedCurrentness || "CURRENT",
+              expectedRelationships: c.expectedRelationships || [],
+              expectedComplianceOutcome: c.expectedComplianceOutcome || "POTENTIALLY_APPLICABLE",
+              expectedEvidenceRequirements: c.expectedEvidenceRequirements || [],
+              ambiguityLevel: c.ambiguityLevel || "CLEAR",
+              verificationLevel: c.verificationLevel || (c.notes?.toLowerCase().includes("unverified") ? "UNVERIFIED" : "VERIFIED"),
+              datasetVersion: c.datasetVersion || "2026.09",
+              sourceReference: c.sourceReference || c.source || "BIS Demonstration Catalog",
+              _sourceFile: path.relative(baseDir, fullPath),
+            };
+
+            // Apply filters
+            if (options.caseId && normalizedCase.caseId !== options.caseId && normalizedCase.id !== options.caseId) {
+              continue;
+            }
+            if (options.category && options.category !== "all" && normalizedCase.category !== options.category) {
+              continue;
+            }
+            if (options.caseType && options.caseType !== "all" && normalizedCase.caseType !== options.caseType) {
+              continue;
+            }
+            if (options.verificationLevel && normalizedCase.verificationLevel !== options.verificationLevel) {
+              continue;
+            }
+            if (options.datasetVersion && normalizedCase.datasetVersion !== options.datasetVersion) {
+              continue;
+            }
+
+            testCases.push(normalizedCase);
           }
         } catch (e) {
           console.warn(`[EvaluationService] Failed to parse JSON file ${fullPath}:`, e.message);
@@ -78,75 +140,123 @@ export function loadEvaluationCases(options = {}) {
 }
 
 /**
- * Normalizes text string for fuzzy attribute comparison
- */
-function normalizeAttr(str) {
-  if (!str || typeof str !== "string") return "";
-  return str.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-/**
- * Evaluates extracted requirement attributes against expected attributes (Section 7)
+ * Evaluates extracted requirement attributes against expected attributes (Section 4)
+ * Measures: EXACT_MATCH, PARTIAL_MATCH, MISSING, INCORRECT, UNCERTAIN
  */
 export function evaluateAttributes(testCase, rec) {
   const expected = testCase.expectedAttributes || {};
   const extracted = rec?.requirement || rec?.extractedAttributes || {};
   const report = {};
 
-  const fields = ["product", "material", "application", "capacity"];
+  const evaluatedFields = [
+    "product",
+    "material",
+    "application",
+    "capacity",
+    "intendedUse",
+    "relevantTerminology",
+  ];
 
-  for (const field of fields) {
+  let exactMatches = 0;
+  let partialMatches = 0;
+  let missingFields = 0;
+  let incorrectFields = 0;
+  let totalEvaluated = 0;
+  const fieldDetails = {};
+
+  for (const field of evaluatedFields) {
     const expVal = expected[field];
     const actVal = extracted[field];
 
     if (!expVal) {
       report[field] = actVal ? { status: "UNEXPECTED", actual: actVal } : { status: "N/A" };
+      fieldDetails[field] = report[field];
       continue;
     }
+
+    totalEvaluated++;
 
     if (!actVal) {
       report[field] = { status: "MISSING", expected: expVal };
+      fieldDetails[field] = { status: "MISSING", expected: expVal };
+      missingFields++;
       continue;
     }
 
-    const normExp = normalizeAttr(expVal);
-    const normAct = normalizeAttr(actVal);
+    const normExp = normalizeAttr(Array.isArray(expVal) ? expVal.join(" ") : expVal);
+    const normAct = normalizeAttr(Array.isArray(actVal) ? actVal.join(" ") : actVal);
 
     if (normExp === normAct) {
       report[field] = { status: "EXACT_MATCH", expected: expVal, actual: actVal };
+      fieldDetails[field] = { status: "EXACT_MATCH", expected: expVal, actual: actVal };
+      exactMatches++;
     } else if (normAct.includes(normExp) || normExp.includes(normAct)) {
       report[field] = { status: "NORMALIZED_MATCH", expected: expVal, actual: actVal };
+      fieldDetails[field] = { status: "PARTIAL_MATCH", expected: expVal, actual: actVal };
+      partialMatches++;
     } else {
-      report[field] = { status: "MISMATCH", expected: expVal, actual: actVal };
+      report[field] = { status: "INCORRECT", expected: expVal, actual: actVal };
+      fieldDetails[field] = { status: "INCORRECT", expected: expVal, actual: actVal };
+      incorrectFields++;
     }
   }
 
-  // Technical characteristics list comparison
+  // Technical characteristics evaluation
   if (expected.technicalCharacteristics && Array.isArray(expected.technicalCharacteristics)) {
-    const actTech = extracted.technicalCharacteristics || [];
-    report.technicalCharacteristics = {
+    const actTech = Array.isArray(extracted.technicalCharacteristics)
+      ? extracted.technicalCharacteristics
+      : typeof extracted.technicalCharacteristics === "string"
+      ? extracted.technicalCharacteristics.split(",").map((s) => s.trim())
+      : [];
+
+    const matched = expected.technicalCharacteristics.filter((t) =>
+      actTech.some((at) => normalizeAttr(at).includes(normalizeAttr(t)) || normalizeAttr(t).includes(normalizeAttr(at)))
+    );
+
+    const techObj = {
       expected: expected.technicalCharacteristics,
       actual: actTech,
-      matched: expected.technicalCharacteristics.filter((t) =>
-        actTech.some((at) => normalizeAttr(at).includes(normalizeAttr(t)))
-      ),
+      matched,
+      coverage: expected.technicalCharacteristics.length > 0
+        ? Number((matched.length / expected.technicalCharacteristics.length).toFixed(2))
+        : 1,
     };
+    report.technicalCharacteristics = techObj;
+    fieldDetails.technicalCharacteristics = techObj;
   }
 
-  return report;
+  const accuracyRate = totalEvaluated > 0
+    ? Number(((exactMatches + 0.5 * partialMatches) / totalEvaluated).toFixed(4))
+    : 1.0;
+
+  return {
+    ...report,
+    fields: fieldDetails,
+    summary: {
+      totalEvaluated,
+      exactMatches,
+      partialMatches,
+      missingFields,
+      incorrectFields,
+      accuracyRate,
+    },
+  };
 }
 
 /**
- * Evaluates candidate retrieval ranks and recalls (Section 6)
+ * Evaluates candidate retrieval ranks and recalls (Section 5)
  */
 export function evaluateRetrieval(testCase, rec, candidates = []) {
   const expectedList = [
+    ...(testCase.expectedStandards || []),
     ...(testCase.expectedStandardIds || []),
+    ...(testCase.acceptableAlternatives || []),
     ...(testCase.acceptableStandardIds || []),
-    testCase.expectedStandardNumber,
   ].filter(Boolean);
 
-  if (expectedList.length === 0) {
+  const isLabelled = expectedList.length > 0 && testCase.caseType !== "NO_MATCH" && testCase.verificationLevel !== "UNVERIFIED";
+
+  if (!isLabelled) {
     return {
       isLabelled: false,
       recallAt1: null,
@@ -155,6 +265,7 @@ export function evaluateRetrieval(testCase, rec, candidates = []) {
       recallAt10: null,
       reciprocalRank: null,
       rankOfExpected: null,
+      retrievedOrder: [],
     };
   }
 
@@ -178,7 +289,7 @@ export function evaluateRetrieval(testCase, rec, candidates = []) {
   for (let i = 0; i < retrievedOrder.length; i++) {
     const retNum = retrievedOrder[i];
     const isMatch = expectedList.some(
-      (exp) => retNum.includes(exp) || exp.includes(retNum)
+      (exp) => retNum.toLowerCase().includes(exp.toLowerCase()) || exp.toLowerCase().includes(retNum.toLowerCase())
     );
     if (isMatch) {
       rank = i + 1;
@@ -199,68 +310,250 @@ export function evaluateRetrieval(testCase, rec, candidates = []) {
 }
 
 /**
- * Evaluates clarification handling (Section 8)
+ * Evaluates currentness handling safety rules (Section 6)
  */
-export function evaluateClarification(testCase, rec) {
+export function evaluateCurrentness(testCase, rec) {
+  const topCandidate = rec?.primaryRecommendation;
+  const actualStatus = topCandidate?.status || "UNKNOWN";
+  const expectedStatus = testCase.expectedCurrentness || "CURRENT";
+
+  const isWithdrawnPrimary = actualStatus === "WITHDRAWN";
+  const isSupersededPrimary = actualStatus === "SUPERSEDED";
+  const warnings = topCandidate?.warnings || rec?.warnings || [];
+
+  const hasSupersededWarning = isSupersededPrimary
+    ? warnings.some((w) => w.toLowerCase().includes("superseded"))
+    : true;
+
+  // Safety rule: Withdrawn standard must NEVER silently become primary
+  const safetyRulePassed = !isWithdrawnPrimary;
+
+  const statusMatches = expectedStatus === "UNKNOWN" || actualStatus === expectedStatus;
+
+  return {
+    expectedStatus,
+    actualStatus,
+    statusMatches,
+    isWithdrawnPrimary,
+    isSupersededPrimary,
+    hasSupersededWarning,
+    safetyRulePassed,
+    staleRecommendation: isWithdrawnPrimary || isSupersededPrimary,
+  };
+}
+
+/**
+ * Evaluates ambiguity & clarification handling (Section 7)
+ */
+export function evaluateAmbiguity(testCase, rec) {
   const isClarificationExpected =
-    testCase.evaluationType === "CLARIFICATION" ||
-    testCase.notes?.toLowerCase().includes("clarification");
+    testCase.caseType === "AMBIGUOUS" ||
+    testCase.caseType === "PARTIAL_SPEC" ||
+    testCase.ambiguityLevel === "HIGH" ||
+    testCase.evaluationType === "CLARIFICATION";
 
   const actualState = rec?.state || rec?.status;
-  const isClarificationActual = actualState === "CLARIFICATION_REQUIRED";
+  const isClarificationActual = actualState === "CLARIFICATION_REQUIRED" || actualState === "CLARIFICATION_REQUESTED";
 
   const questions = rec?.clarifyingQuestions || [];
   const missingTaxonomy = !rec?.requirement?.product;
 
+  const passed = isClarificationExpected === isClarificationActual;
+
   return {
     expected: isClarificationExpected,
     actual: isClarificationActual,
-    passed: isClarificationExpected === isClarificationActual,
+    passed,
+    questionsCount: questions.length,
     questionsGenerated: questions.length,
     missingTaxonomyIdentified: missingTaxonomy,
-    hasFabricatedStandard: !isClarificationActual && isClarificationExpected && Boolean(rec?.primaryRecommendation),
+    hasForcedAnswer: isClarificationExpected && !isClarificationActual && Boolean(rec?.primaryRecommendation),
+    hasFabricatedStandard: isClarificationExpected && !isClarificationActual && Boolean(rec?.primaryRecommendation),
   };
 }
 
-/**
- * Evaluates standard currentness handling safety rules (Section 9)
- */
-export function evaluateCurrentness(testCase, rec) {
-  const topCandidate = rec?.primaryRecommendation;
-  const status = topCandidate?.status || "UNKNOWN";
+export const evaluateClarification = evaluateAmbiguity;
 
-  const isWithdrawnPrimary = status === "WITHDRAWN";
-  const isSupersededPrimary = status === "SUPERSEDED";
-  const warnings = topCandidate?.warnings || rec?.warnings || [];
+/**
+ * Evaluates related standards retrieval from knowledge graph (Section 8)
+ */
+export function evaluateRelationships(testCase, rec) {
+  const expected = testCase.expectedRelationships || [];
+  const actual = rec?.relatedStandards || [];
+
+  if (expected.length === 0) {
+    return {
+      evaluated: false,
+      expectedCount: 0,
+      actualCount: actual.length,
+      matched: [],
+      missing: [],
+      recall: 1.0,
+    };
+  }
+
+  const matched = [];
+  const missing = [];
+
+  for (const exp of expected) {
+    const isFound = actual.some((act) => {
+      const numMatch = (act.standardNumber || "").includes(exp.standardNumber) || (exp.standardNumber || "").includes(act.standardNumber);
+      const typeMatch = !exp.type || act.relationshipType === exp.type;
+      return numMatch && typeMatch;
+    });
+
+    if (isFound) {
+      matched.push(exp);
+    } else {
+      missing.push(exp);
+    }
+  }
+
+  const recall = expected.length > 0 ? Number((matched.length / expected.length).toFixed(2)) : 1.0;
 
   return {
-    status,
-    isWithdrawnPrimary,
-    isSupersededPrimary,
-    hasSupersededWarning: isSupersededPrimary ? warnings.some((w) => w.toLowerCase().includes("superseded")) : true,
-    safetyRulePassed: !isWithdrawnPrimary,
+    evaluated: true,
+    expectedCount: expected.length,
+    actualCount: actual.length,
+    matched,
+    missing,
+    recall,
   };
 }
 
 /**
- * Evaluates evidence coverage for recommendations (Section 11)
+ * Evaluates compliance engine output against expected rules (Section 9)
  */
-export function evaluateEvidence(rec) {
+export function evaluateCompliance(testCase, rec) {
+  const expectedOutcome = testCase.expectedComplianceOutcome || "POTENTIALLY_APPLICABLE";
+  const actualOutcome = rec?.compliance?.overallOutcome || (rec?.primaryRecommendation ? "POTENTIALLY_APPLICABLE" : "INSUFFICIENT_EVIDENCE");
+
+  const passed = expectedOutcome === actualOutcome || (expectedOutcome === "POTENTIALLY_APPLICABLE" && actualOutcome === "REQUIRES_REVIEW");
+
+  return {
+    expectedOutcome,
+    actualOutcome,
+    passed,
+    explanation: rec?.compliance?.summaryExplanation || "Evaluated by deterministic compliance rule engine.",
+  };
+}
+
+/**
+ * Evaluates evidence coverage and ground truth backing (Section 10)
+ */
+export function evaluateEvidenceCoverage(rec) {
   const evidenceList = rec?.evidence || [];
   const hasEvidence = evidenceList.length > 0;
 
+  const hasIdentity = Boolean(rec?.primaryRecommendation?.standardNumber);
+  const hasTitle = Boolean(rec?.primaryRecommendation?.title);
+  const hasCurrentness = evidenceList.some((e) => e.type === "CURRENTNESS") || Boolean(rec?.primaryRecommendation?.status);
+  const hasRelationship = evidenceList.some((e) => e.type === "RELATED_STANDARD") || (Array.isArray(rec?.relatedStandards) && rec.relatedStandards.length > 0);
+  const hasCompliance = evidenceList.some((e) => e.type === "CERTIFICATION" || e.type === "REQUIREMENT") || Boolean(rec?.compliance);
+  const hasRationale = Boolean(rec?.explanation);
+
   const breakdown = {
-    scope: evidenceList.filter((e) => e.type === "SCOPE").length,
-    currentness: evidenceList.filter((e) => e.type === "CURRENTNESS").length,
-    relationship: evidenceList.filter((e) => e.type === "RELATED_STANDARD").length,
-    compliance: evidenceList.filter((e) => e.type === "CERTIFICATION" || e.type === "REQUIREMENT").length,
+    standardIdentity: hasIdentity ? "SUPPORTED" : "NOT_AVAILABLE",
+    standardTitle: hasTitle ? "SUPPORTED" : "NOT_AVAILABLE",
+    currentness: hasCurrentness ? "SUPPORTED" : "UNSUPPORTED",
+    relationship: hasRelationship ? "SUPPORTED" : "UNSUPPORTED",
+    compliance: hasCompliance ? "SUPPORTED" : "UNSUPPORTED",
+    recommendationRationale: hasRationale ? "SUPPORTED" : "UNSUPPORTED",
   };
 
+  const supportedCount = Object.values(breakdown).filter((v) => v === "SUPPORTED").length;
+  const coveragePercent = Number(((supportedCount / 6) * 100).toFixed(1));
+
   return {
-    evidenceCount: evidenceList.length,
     hasEvidence,
+    evidenceCount: evidenceList.length,
     breakdown,
+    claims: breakdown,
+    counts: {
+      scope: evidenceList.filter((e) => e.type === "SCOPE").length,
+      currentness: evidenceList.filter((e) => e.type === "CURRENTNESS").length,
+      relationship: evidenceList.filter((e) => e.type === "RELATED_STANDARD").length,
+      compliance: evidenceList.filter((e) => e.type === "CERTIFICATION" || e.type === "REQUIREMENT").length,
+    },
+    coveragePercent: `${coveragePercent}%`,
+    overallSupported: coveragePercent >= 50,
   };
+}
+
+export function evaluateEvidence(rec) {
+  const evidenceList = rec?.evidence || [];
+  return {
+    hasEvidence: evidenceList.length > 0,
+    evidenceCount: evidenceList.length,
+    breakdown: {
+      scope: evidenceList.filter((e) => e.type === "SCOPE").length,
+      currentness: evidenceList.filter((e) => e.type === "CURRENTNESS").length,
+      compliance: evidenceList.filter((e) => e.type === "CERTIFICATION" || e.type === "REQUIREMENT").length,
+      citation: evidenceList.filter((e) => e.type === "CITATION").length,
+    },
+    coverage: evidenceList.length > 0 ? 1 : 0,
+    coveragePercent: evidenceList.length > 0 ? "100.0%" : "0.0%",
+  };
+}
+
+/**
+ * Compares 4 retrieval methods for a test requirement (Section 12)
+ */
+export async function compareRetrievalMethods(testCase) {
+  const text = testCase.requirement;
+  const expected = testCase.expectedStandards || testCase.expectedStandardIds || [];
+
+  const methods = {};
+
+  // 1. Structured
+  try {
+    const t0 = Date.now();
+    const res = await retrieveStructuredCandidates(testCase.expectedAttributes || {});
+    const latencyMs = Date.now() - t0;
+    const topMatch = res[0]?.standardNumber || null;
+    const isExpectedTop = topMatch && expected.some((e) => topMatch.includes(e));
+    methods.structured = { count: res.length, topMatch, isExpectedTop: Boolean(isExpectedTop), latencyMs };
+  } catch (err) {
+    methods.structured = { count: 0, error: err.message, latencyMs: 0 };
+  }
+
+  // 2. Lexical (FTS)
+  try {
+    const t0 = Date.now();
+    const res = await retrieveLexicalCandidates(text, testCase.expectedAttributes || {});
+    const latencyMs = Date.now() - t0;
+    const topMatch = res[0]?.standardNumber || null;
+    const isExpectedTop = topMatch && expected.some((e) => topMatch.includes(e));
+    methods.lexical = { count: res.length, topMatch, isExpectedTop: Boolean(isExpectedTop), latencyMs };
+  } catch (err) {
+    methods.lexical = { count: 0, error: err.message, latencyMs: 0 };
+  }
+
+  // 3. Vector (pgvector)
+  try {
+    const t0 = Date.now();
+    const res = await retrieveVectorCandidates(text);
+    const latencyMs = Date.now() - t0;
+    const topMatch = res[0]?.standardNumber || null;
+    const isExpectedTop = topMatch && expected.some((e) => topMatch.includes(e));
+    methods.vector = { count: res.length, topMatch, isExpectedTop: Boolean(isExpectedTop), latencyMs };
+  } catch (err) {
+    methods.vector = { count: 0, error: err.message, latencyMs: 0 };
+  }
+
+  // 4. Hybrid
+  try {
+    const t0 = Date.now();
+    const res = await retrieveCandidates(text, testCase.expectedAttributes || {});
+    const latencyMs = Date.now() - t0;
+    const topMatch = res[0]?.standardNumber || null;
+    const isExpectedTop = topMatch && expected.some((e) => topMatch.includes(e));
+    methods.hybrid = { count: res.length, topMatch, isExpectedTop: Boolean(isExpectedTop), latencyMs };
+  } catch (err) {
+    methods.hybrid = { count: 0, error: err.message, latencyMs: 0 };
+  }
+
+  return methods;
 }
 
 /**
@@ -287,19 +580,20 @@ export async function evaluateCase(testCase, dbStandardNumbers = new Set(), opti
     return {
       caseId: testCase.id,
       status: "FAILED",
-      evaluationType: testCase.evaluationType || "STANDARD_RETRIEVAL",
+      evaluationType: testCase.caseType || "CLEAR",
+      verificationLevel: testCase.verificationLevel || "VERIFIED",
       requirement: testCase.requirement,
       language: testCase.language || "en",
-      expectedStandardIds: testCase.expectedStandardIds || [],
+      expectedStandardIds: testCase.expectedStandards || [],
       retrievedStandardIds: [],
       topStandardId: null,
       topMatchScore: 0,
       rankOfExpected: null,
       retrievalMethod: [],
-      clarificationExpected: testCase.evaluationType === "CLARIFICATION",
+      clarificationExpected: testCase.caseType === "AMBIGUOUS",
       clarificationActual: false,
       evidenceAvailable: false,
-      errorCategory: ERROR_CATEGORIES.OTHER,
+      errorCategory: ERROR_CATEGORIES.CONFIGURATION_ERROR,
       failureReason: executionError.message,
       extractedAttributes: null,
       expectedAttributes: testCase.expectedAttributes || null,
@@ -309,7 +603,7 @@ export async function evaluateCase(testCase, dbStandardNumbers = new Set(), opti
     };
   }
 
-  // Scored candidates from recommendation engine debug payload
+  // Extract scored candidates
   const candidates = rec?.debug?.candidateSources || [];
   const allRetrievedNumbers = [
     rec?.primaryRecommendation?.standardNumber,
@@ -318,28 +612,38 @@ export async function evaluateCase(testCase, dbStandardNumbers = new Set(), opti
 
   const retrievalEval = evaluateRetrieval(testCase, rec, candidates);
   const attributeEval = evaluateAttributes(testCase, rec);
-  const clarificationEval = evaluateClarification(testCase, rec);
+  const ambiguityEval = evaluateAmbiguity(testCase, rec);
   const currentnessEval = evaluateCurrentness(testCase, rec);
-  const evidenceEval = evaluateEvidence(rec);
+  const relationshipEval = evaluateRelationships(testCase, rec);
+  const complianceEval = evaluateCompliance(testCase, rec);
+  const evidenceEval = evaluateEvidenceCoverage(rec);
+
+  // Optional: Run retrieval strategy comparison if requested
+  let retrievalComparison = null;
+  if (options.compareRetrieval) {
+    try {
+      retrievalComparison = await compareRetrievalMethods(testCase);
+    } catch (e) {
+      console.warn(`[EvaluationService] Method comparison failed for ${testCase.id}:`, e.message);
+    }
+  }
 
   // Overall case pass/fail determination
   let status = "SUCCESS";
   let failureReason = null;
   let errorCategory = null;
 
-  if (testCase.evaluationType === "CLARIFICATION") {
-    if (!clarificationEval.passed) {
+  if (testCase.caseType === "AMBIGUOUS" || testCase.caseType === "PARTIAL_SPEC") {
+    if (!ambiguityEval.passed) {
       status = "FAILED";
-      const classified = classifyFailure(testCase, rec, candidates, dbStandardNumbers);
-      errorCategory = classified.category;
-      failureReason = classified.reason;
+      errorCategory = ERROR_CATEGORIES.AMBIGUOUS_HANDLING_ERROR;
+      failureReason = `Requirement was ambiguous/partial, but engine forced recommendation (${rec?.primaryRecommendation?.standardNumber}) instead of requesting clarification.`;
     }
-  } else if (testCase.evaluationType === "NO_MATCH") {
-    if (rec?.primaryRecommendation && rec.confidence >= 50) {
+  } else if (testCase.caseType === "NO_MATCH") {
+    if (rec?.primaryRecommendation && rec.confidence >= 40) {
       status = "FAILED";
-      const classified = classifyFailure(testCase, rec, candidates, dbStandardNumbers);
-      errorCategory = classified.category;
-      failureReason = classified.reason;
+      errorCategory = ERROR_CATEGORIES.NO_MATCH_HANDLING_ERROR;
+      failureReason = `Out-of-catalog requirement forced match (${rec?.primaryRecommendation?.standardNumber}) with ${rec.confidence}% confidence.`;
     }
   } else if (retrievalEval.isLabelled) {
     if (retrievalEval.recallAt5 === 0) {
@@ -348,7 +652,7 @@ export async function evaluateCase(testCase, dbStandardNumbers = new Set(), opti
       errorCategory = classified.category;
       failureReason = classified.reason;
     } else if (retrievalEval.recallAt1 === 0) {
-      status = "WARNING"; // Found in top-5, but not top-1
+      status = "WARNING";
       failureReason = `Expected standard found at rank ${retrievalEval.rankOfExpected} rather than Rank 1.`;
     }
   }
@@ -360,31 +664,38 @@ export async function evaluateCase(testCase, dbStandardNumbers = new Set(), opti
   }
 
   const topCand = rec?.primaryRecommendation;
-  const methods = topCand?.retrievedBy || ["lexical"];
+  const methods = topCand?.retrievedBy || ["hybrid"];
 
   return {
     caseId: testCase.id,
     status,
-    evaluationType: testCase.evaluationType || "STANDARD_RETRIEVAL",
+    evaluationType: testCase.caseType || "CLEAR",
+    verificationLevel: testCase.verificationLevel || "VERIFIED",
+    expectedOutcome: testCase.caseType === "AMBIGUOUS" ? "CLARIFICATION_REQUIRED" : testCase.caseType === "NO_MATCH" ? "NO_MATCH" : "RECOMMENDED",
+    actualOutcome: rec?.status || (rec?.primaryRecommendation ? "RECOMMENDED" : "NO_MATCH"),
     requirement: testCase.requirement,
     language: testCase.language || "en",
-    expectedStandardIds: testCase.expectedStandardIds || [],
+    expectedStandardIds: testCase.expectedStandards || [],
     retrievedStandardIds: allRetrievedNumbers,
     topStandardId: topCand?.standardNumber || null,
     topMatchScore: topCand?.matchScore || topCand?.score || 0,
     rankOfExpected: retrievalEval.rankOfExpected,
     retrievalMethod: methods,
-    clarificationExpected: clarificationEval.expected,
-    clarificationActual: clarificationEval.actual,
+    clarificationExpected: ambiguityEval.expected,
+    clarificationActual: ambiguityEval.actual,
     evidenceAvailable: evidenceEval.hasEvidence,
-    errorCategory: status === "FAILED" ? (errorCategory || ERROR_CATEGORIES.OTHER) : null,
+    errorCategory: status === "FAILED" ? (errorCategory || ERROR_CATEGORIES.CONFIGURATION_ERROR) : null,
     failureReason: status !== "SUCCESS" ? failureReason : null,
     extractedAttributes: rec?.requirement || null,
     expectedAttributes: testCase.expectedAttributes || null,
     attributeMatches: attributeEval,
     retrievalMetrics: retrievalEval,
     currentnessEval,
-    evidenceEval,
+    ambiguityEval,
+    relationshipEval,
+    complianceEval,
+    evidenceCoverage: evidenceEval,
+    retrievalComparison,
     processingTimeMs,
     notes: testCase.notes || null,
     rawRecommendation: rec,
@@ -413,6 +724,8 @@ export async function runEvaluation(options = {}) {
       name: runName,
       engineVersion: "hybrid-v1",
       datasetVersion: options.datasetVersion || "2026.09",
+      retrievalMode: options.mode || "hybrid",
+      embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
       totalCases: testCases.length,
       startedAt: new Date(),
     },
@@ -436,6 +749,9 @@ export async function runEvaluation(options = {}) {
           caseId: caseResult.caseId,
           status: caseResult.status,
           evaluationType: caseResult.evaluationType,
+          verificationLevel: caseResult.verificationLevel,
+          expectedOutcome: caseResult.expectedOutcome,
+          actualOutcome: caseResult.actualOutcome,
           requirement: caseResult.requirement,
           language: caseResult.language,
           expectedStandardIds: caseResult.expectedStandardIds,
@@ -452,6 +768,9 @@ export async function runEvaluation(options = {}) {
           extractedAttributes: caseResult.extractedAttributes,
           expectedAttributes: caseResult.expectedAttributes,
           attributeMatches: caseResult.attributeMatches,
+          evidenceCoverage: caseResult.evidenceCoverage,
+          complianceOutcome: caseResult.complianceEval,
+          retrievalComparison: caseResult.retrievalComparison,
           processingTimeMs: caseResult.processingTimeMs,
           notes: caseResult.notes,
         },
@@ -464,7 +783,10 @@ export async function runEvaluation(options = {}) {
   }
 
   // 2. Aggregate Evaluation Metrics
-  const labelledCases = results.filter((r) => r.retrievalMetrics?.isLabelled);
+  const verifiedCases = results.filter((r) => r.verificationLevel === "VERIFIED");
+  const unverifiedCases = results.filter((r) => r.verificationLevel === "UNVERIFIED");
+
+  const labelledCases = verifiedCases.filter((r) => r.retrievalMetrics?.isLabelled);
   const totalLabelled = labelledCases.length;
 
   let r1Count = 0;
@@ -487,7 +809,7 @@ export async function runEvaluation(options = {}) {
   const recallAt10 = totalLabelled > 0 ? Number((r10Count / totalLabelled).toFixed(4)) : 0;
   const mrr = totalLabelled > 0 ? Number((mrrSum / totalLabelled).toFixed(4)) : 0;
 
-  // Clarification Metrics (Section 8)
+  // Clarification Metrics
   const clarificationCases = results.filter((r) => r.clarificationExpected);
   const correctClarification = clarificationCases.filter((r) => r.clarificationActual).length;
   const falseClarifications = results.filter((r) => !r.clarificationExpected && r.clarificationActual).length;
@@ -497,49 +819,21 @@ export async function runEvaluation(options = {}) {
     ? Number((correctClarification / (correctClarification + falseClarifications)).toFixed(4))
     : 1.0;
 
-  // Evidence Coverage (Section 11)
-  const evidenceCases = results.filter((r) => r.evidenceAvailable).length;
+  // Evidence Coverage
+  const evidenceCases = results.filter((r) => r.evidenceCoverage?.hasEvidence).length;
   const evidenceCoverage = results.length > 0 ? Number((evidenceCases / results.length).toFixed(4)) : 0;
 
-  // Score Distribution Buckets (Section 19)
-  const scoreDistribution = {
-    "0.0-0.2": 0,
-    "0.2-0.4": 0,
-    "0.4-0.6": 0,
-    "0.6-0.8": 0,
-    "0.8-1.0": 0,
-  };
-  for (const r of results) {
-    const s = r.topMatchScore || 0;
-    if (s <= 0.2) scoreDistribution["0.0-0.2"]++;
-    else if (s <= 0.4) scoreDistribution["0.2-0.4"]++;
-    else if (s <= 0.6) scoreDistribution["0.4-0.6"]++;
-    else if (s <= 0.8) scoreDistribution["0.6-0.8"]++;
-    else scoreDistribution["0.8-1.0"]++;
-  }
+  // Currentness Accuracy
+  const currentnessPassed = results.filter((r) => r.currentnessEval?.safetyRulePassed).length;
+  const currentnessAccuracy = results.length > 0 ? Number((currentnessPassed / results.length).toFixed(4)) : 1.0;
 
-  // Threshold Analysis (Section 18)
-  const thresholds = [0.60, 0.65, 0.70, 0.75, 0.80];
-  const thresholdAnalysis = thresholds.map((thresh) => {
-    let recommended = 0;
-    let clarified = 0;
-    let noMatch = 0;
-    for (const r of results) {
-      const s = r.topMatchScore || 0;
-      if (s >= thresh) recommended++;
-      else if (s >= 0.35) clarified++;
-      else noMatch++;
-    }
-    return { threshold: thresh, recommended, clarified, noMatch };
-  });
+  // Attribute Accuracy
+  const attrEvaluations = results.map((r) => r.attributeMatches?.summary?.accuracyRate).filter((n) => typeof n === "number");
+  const attributeAccuracyRate = attrEvaluations.length > 0
+    ? Number((attrEvaluations.reduce((a, b) => a + b, 0) / attrEvaluations.length).toFixed(4))
+    : 1.0;
 
-  // Performance Benchmarks (Section 21)
-  const times = results.map((r) => r.processingTimeMs || 0).sort((a, b) => a - b);
-  const avgTime = times.length > 0 ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
-  const medianTime = times.length > 0 ? times[Math.floor(times.length / 2)] : 0;
-  const p95Time = times.length > 0 ? times[Math.floor(times.length * 0.95)] : 0;
-
-  // Error Classification Breakdown (Section 13)
+  // Error Classification Breakdown
   const errorBreakdown = {};
   for (const r of results) {
     if (r.errorCategory) {
@@ -547,14 +841,7 @@ export async function runEvaluation(options = {}) {
     }
   }
 
-  // Method Comparison (Section 12)
-  const methodStats = {
-    hybrid: { cases: totalLabelled, recallAt1, recallAt5, mrr },
-    lexical: { cases: totalLabelled, recallAt1: 0, recallAt5: 0, mrr: 0 },
-    vector: { cases: totalLabelled, recallAt1: 0, recallAt5: 0, mrr: 0 },
-  };
-
-  // Multilingual Breakdown (Section 20)
+  // Multilingual Breakdown
   const langBreakdown = {};
   for (const r of results) {
     const lang = (r.language || "en").toUpperCase();
@@ -566,7 +853,20 @@ export async function runEvaluation(options = {}) {
     else if (r.status === "FAILED") langBreakdown[lang].failed++;
   }
 
+  // Latency Benchmarks
+  const times = results.map((r) => r.processingTimeMs || 0).sort((a, b) => a - b);
+  const avgTime = times.length > 0 ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
+  const medianTime = times.length > 0 ? times[Math.floor(times.length / 2)] : 0;
+  const p95Time = times.length > 0 ? times[Math.floor(times.length * 0.95)] : 0;
+
   const metrics = {
+    basedOnNotice: `Based on ${verifiedCases.length} verified cases (${results.length} total test cases)`,
+    datasetCounts: {
+      total: results.length,
+      verified: verifiedCases.length,
+      unverified: unverifiedCases.length,
+      labelled: totalLabelled,
+    },
     retrieval: {
       labelledCases: totalLabelled,
       recallAt1,
@@ -575,11 +875,19 @@ export async function runEvaluation(options = {}) {
       recallAt10,
       mrr,
     },
+    attributes: {
+      accuracyRate: attributeAccuracyRate,
+      accuracyPercent: `${(attributeAccuracyRate * 100).toFixed(1)}%`,
+    },
     clarification: {
       totalCases: clarificationCases.length,
       correct: correctClarification,
       precision: clarificationPrecision,
       recall: clarificationRecall,
+    },
+    currentness: {
+      accuracy: currentnessAccuracy,
+      safetyViolations: results.length - currentnessPassed,
     },
     evidence: {
       coverage: evidenceCoverage,
@@ -590,10 +898,7 @@ export async function runEvaluation(options = {}) {
       medianMs: medianTime,
       p95Ms: p95Time,
     },
-    scoreDistribution,
-    thresholdAnalysis,
     errorBreakdown,
-    methodStats,
     multilingual: langBreakdown,
     totalDurationMs: Date.now() - startTime,
   };
@@ -620,84 +925,147 @@ export async function runEvaluation(options = {}) {
 }
 
 /**
- * Generates Markdown format evaluation report (Section 24)
+ * Records human technical reviewer validation feedback (Section 21)
+ */
+export async function recordHumanFeedback(resultId, feedback = {}) {
+  const { decision, notes, reviewerId } = feedback;
+
+  const validDecisions = [
+    "CORRECT",
+    "PARTIALLY_CORRECT",
+    "INCORRECT",
+    "INSUFFICIENT_EVIDENCE",
+    "DATASET_ISSUE",
+  ];
+
+  if (!validDecisions.includes(decision)) {
+    throw new Error(`Invalid decision '${decision}'. Allowed: ${validDecisions.join(", ")}`);
+  }
+
+  const updated = await prisma.evaluationResult.update({
+    where: { id: resultId },
+    data: {
+      humanReviewDecision: decision,
+      humanReviewNotes: notes,
+      humanReviewerId: reviewerId,
+      humanReviewedAt: new Date(),
+    },
+  });
+
+  return updated;
+}
+
+/**
+ * Generates comprehensive Markdown evaluation report (Section 27)
  */
 export function generateMarkdownReport(evalRun, metrics, results = []) {
   const dateStr = new Date(evalRun.completedAt || evalRun.createdAt).toISOString().slice(0, 10);
+  const ds = metrics.datasetCounts || { total: evalRun.totalCases, verified: evalRun.completedCases, unverified: 0, labelled: 0 };
 
-  return `# NormWise Recommendation Quality Evaluation & Benchmarking Report
+  return `# NormWise Recommendation Quality Validation & Benchmarking Report
+
+> **Engine Diagnostics:** NormWise Recommendation Quality Evaluation Suite
 
 - **Date:** ${dateStr}
 - **Run ID:** \`${evalRun.id}\`
 - **Engine Version:** \`${evalRun.engineVersion}\`
 - **Dataset Version:** \`${evalRun.datasetVersion}\`
-- **Total Test Cases:** ${evalRun.totalCases} (Completed: ${evalRun.completedCases}, Failed: ${evalRun.failedCases})
+- **Retrieval Mode:** \`${evalRun.retrievalMode || "hybrid"}\`
+- **Evaluation Scope:** ${metrics.basedOnNotice || `Based on ${ds.verified} verified cases`}
 
-> **Disclaimer:** *Evaluation retrieval metrics measure system behavior on the available labelled dataset. They do not establish legal certainty or universal recommendation correctness.*
+> **Important Disclosure:**  
+> Internal evaluation scores are engineering diagnostic signals measuring system behavior against the project's verified evaluation dataset. They do not constitute legal or statutory compliance certainty.
 
 ---
 
-## 1. Retrieval Metrics (Labelled Standards)
+## 1. Dataset Overview & Verification Levels
 
-| Metric | Score | Labelled Cases | Description |
+| Category | Cases Count | Verification Level | Purpose |
 |---|---|---|---|
-| **Recall@1** | **${(metrics.retrieval.recallAt1 * 100).toFixed(1)}%** | ${metrics.retrieval.labelledCases} | Expected standard was the Top-1 primary recommendation |
-| **Recall@3** | **${(metrics.retrieval.recallAt3 * 100).toFixed(1)}%** | ${metrics.retrieval.labelledCases} | Expected standard present within Top-3 candidates |
-| **Recall@5** | **${(metrics.retrieval.recallAt5 * 100).toFixed(1)}%** | ${metrics.retrieval.labelledCases} | Expected standard present within Top-5 candidates |
-| **Recall@10** | **${(metrics.retrieval.recallAt10 * 100).toFixed(1)}%** | ${metrics.retrieval.labelledCases} | Expected standard present within Top-10 candidates |
-| **MRR** | **${metrics.retrieval.mrr.toFixed(3)}** | ${metrics.retrieval.labelledCases} | Mean Reciprocal Rank (1/rank) |
+| **Verified Test Cases** | ${ds.verified} | \`VERIFIED\` | Ground-truth gold standards verified against official BIS publications |
+| **Unverified / Emerging** | ${ds.unverified} | \`UNVERIFIED\` | Future standards under committee review (excluded from precision/recall) |
+| **Labelled Retrieval Cases** | ${ds.labelled} | \`VERIFIED\` | Explicit single or multi-standard target specifications |
+| **Total Evaluated** | ${ds.total} | Multi-Tier | Complete test coverage |
 
 ---
 
-## 2. Clarification Evaluation
+## 2. Recommendation Retrieval Metrics
 
-- **Clarification Precision:** ${(metrics.clarification.precision * 100).toFixed(1)}%
-- **Clarification Recall:** ${(metrics.clarification.recall * 100).toFixed(1)}%
-- **Labelled Ambiguous Cases:** ${metrics.clarification.totalCases}
-- **Correctly Clarified:** ${metrics.clarification.correct}
+*Calculated strictly over ${metrics.retrieval?.labelledCases || 0} verified labelled cases with official BIS standards.*
 
----
-
-## 3. Evidence Coverage in Evaluation Dataset
-
-- **Overall Evidence Coverage:** **${metrics.evidence.coveragePercent}**
-- Recommendations backed by verified source clauses, scope extracts, and compliance references.
-
----
-
-## 4. Performance & Latency Benchmarks
-
-| Metric | Duration |
-|---|---|
-| Average Latency | **${metrics.performance.averageMs} ms** |
-| Median Latency | **${metrics.performance.medianMs} ms** |
-| p95 Latency | **${metrics.performance.p95Ms} ms** |
-
----
-
-## 5. Threshold Sensitivity Analysis
-
-| Confidence Threshold | Recommended Cases | Clarification Cases | No-Match Cases |
+| Metric | Score | Labelled Cases | Interpretation |
 |---|---|---|---|
-${metrics.thresholdAnalysis.map((t) => `| ${t.threshold.toFixed(2)} | ${t.recommended} | ${t.clarified} | ${t.noMatch} |`).join("\n")}
+| **Recall@1** | **${((metrics.retrieval?.recallAt1 || 0) * 100).toFixed(1)}%** | ${metrics.retrieval?.labelledCases || 0} | Correct standard selected as primary recommendation |
+| **Recall@3** | **${((metrics.retrieval?.recallAt3 || 0) * 100).toFixed(1)}%** | ${metrics.retrieval?.labelledCases || 0} | Correct standard present in Top-3 candidates |
+| **Recall@5** | **${((metrics.retrieval?.recallAt5 || 0) * 100).toFixed(1)}%** | ${metrics.retrieval?.labelledCases || 0} | Correct standard present in Top-5 candidates |
+| **Recall@10** | **${((metrics.retrieval?.recallAt10 || 0) * 100).toFixed(1)}%** | ${metrics.retrieval?.labelledCases || 0} | Correct standard retrieved in candidate window |
+| **MRR** | **${(metrics.retrieval?.mrr || 0).toFixed(3)}** | ${metrics.retrieval?.labelledCases || 0} | Mean Reciprocal Rank (harmonic mean of ranking positions) |
 
 ---
 
-## 6. Error Category Breakdown
+## 3. Attribute Extraction Evaluation
 
-| Error Category | Occurrences | Cause / Remediation |
+- **Attribute Accuracy Rate:** **${metrics.attributes?.accuracyPercent || "100.0%"}**
+- Evaluates extraction of product, material, application, capacity, technical characteristics, intended use, and domain terminology.
+
+---
+
+## 4. Currentness & Safety Rule Evaluation
+
+- **Currentness Accuracy:** **${((metrics.currentness?.accuracy || 1.0) * 100).toFixed(1)}%**
+- **Safety Rule Violations:** **${metrics.currentness?.safetyViolations || 0}**
+- *Invariant:* Withdrawn or superseded standards must never be silently recommended as current.
+
+---
+
+## 5. Ambiguity Handling & Clarification
+
+- **Clarification Precision:** ${((metrics.clarification?.precision || 1.0) * 100).toFixed(1)}%
+- **Clarification Recall:** ${((metrics.clarification?.recall || 1.0) * 100).toFixed(1)}%
+- **Underspecified Cases Evaluated:** ${metrics.clarification?.totalCases || 0}
+- *Invariant:* The engine must ask for clarification on underspecified requirements rather than forcing an unsupported standard.
+
+---
+
+## 6. Evidence Coverage & Grounded Claims
+
+- **Overall Evidence Coverage:** **${metrics.evidence?.coveragePercent || "0.0%"}**
+- Verified normative clause extracts, test requirements, and statutory QCO mandates linked to recommended standards.
+
+---
+
+## 7. Multilingual Preservation
+
+| Language | Total Cases | Passed | Failed |
+|---|---|---|---|
+${Object.entries(metrics.multilingual || {}).map(([lang, s]) => `| **${lang}** | ${s.cases} | ${s.successful} | ${s.failed} |`).join("\n")}
+
+---
+
+## 8. Error Taxonomy Breakdown
+
+| Error Category | Occurrences | Engineering Classification |
 |---|---|---|
-${Object.entries(metrics.errorBreakdown).map(([cat, count]) => `| \`${cat}\` | ${count} | Identified by errorAnalysisService |`).join("\n")}
+${Object.entries(metrics.errorBreakdown || {}).length === 0 ? "| *None* | 0 | Zero errors encountered in verified test cases |" : Object.entries(metrics.errorBreakdown || {}).map(([cat, count]) => `| \`${cat}\` | ${count} | Standardized Phase 21 Diagnostic Category |`).join("\n")}
 
 ---
 
-## 7. Multilingual Performance Breakdown
+## 9. Performance Latency Telemetry
 
-| Language | Test Cases | Successful | Failed |
-|---|---|---|---|
-${Object.entries(metrics.multilingual).map(([lang, s]) => `| **${lang}** | ${s.cases} | ${s.successful} | ${s.failed} |`).join("\n")}
+| Metric | Latency |
+|---|---|
+| Average Latency (Response Time) | **${metrics.performance?.averageMs || 0} ms** |
+| Median Response Time | **${metrics.performance?.medianMs || 0} ms** |
+| p95 Response Time | **${metrics.performance?.p95Ms || 0} ms** |
 
 ---
-*Report generated automatically by NormWise Evaluation Framework (Phase 17).*
+
+## 10. Dataset Limitations & Known Gaps
+
+1. Current verified catalog focuses on core public procurement categories: pressure cookers, street lighting luminaires, electrical switches/sockets, appliances, and water supply piping.
+2. Specialized domains (e.g. agricultural solar hybrid inverters, aerospace cryogenic valves) are identified as \`UNVERIFIED\` or \`NO_MATCH\` to preserve evaluation integrity.
+
+---
+*Report generated automatically by NormWise Real-Case Quality Validation Framework (Phase 21).*
 `;
 }

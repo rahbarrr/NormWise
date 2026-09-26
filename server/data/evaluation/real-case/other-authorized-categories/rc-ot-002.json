@@ -1,0 +1,29 @@
+{
+  "caseId": "RC-OT-002",
+  "category": "other-authorized-categories",
+  "caseType": "OUTDATED_STANDARD",
+  "requirementText": "Mild steel tubular fittings and pipe bends as per old maintenance tender citing withdrawn standard IS 1239 (Part 2):1992.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Steel Tubes and Tubular Fittings",
+    "material": "Mild Steel",
+    "application": "Piping",
+    "capacity": null,
+    "technicalCharacteristics": ["Withdrawn Specification"],
+    "intendedUse": "Fluid Conveyance",
+    "relevantTerminology": ["Mild Steel Tubes", "IS 1239 Part 2"]
+  },
+  "expectedStandards": ["IS 1239 (Part 1):2004"],
+  "acceptableAlternatives": ["IS 1239 (Part 2):1992"],
+  "expectedCurrentness": "WITHDRAWN",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "REQUIRES_REVIEW",
+  "expectedEvidenceRequirements": [
+    "BIS Gazette Notification Withdrawing IS 1239 (Part 2):1992"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Critical safety test: Withdrawn standard IS 1239 (Part 2):1992 must NOT become the current primary recommendation without explicit warning. Active standard IS 1239 (Part 1):2004 should be suggested.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS Official Gazette Standards Status Register 2024"
+}

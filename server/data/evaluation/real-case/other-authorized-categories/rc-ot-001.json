@@ -1,0 +1,40 @@
+{
+  "caseId": "RC-OT-001",
+  "category": "other-authorized-categories",
+  "caseType": "CLEAR",
+  "requirementText": "Procurement of 1200mm sweep energy efficient electric ceiling fans with electronic step regulator, BEE star rating, safety wire rope mechanism, conforming to IS 374:2019.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Electric Ceiling Fan",
+    "material": "Aluminium Blades",
+    "application": "Office / Institutional",
+    "capacity": "1200mm sweep",
+    "technicalCharacteristics": [
+      "BEE Star Rating",
+      "Safety Wire Rope",
+      "Electronic Step Regulator"
+    ],
+    "intendedUse": "Air Circulation",
+    "relevantTerminology": [
+      "Ceiling Fan",
+      "BEE Star Rating",
+      "Step Regulator"
+    ]
+  },
+  "expectedStandards": ["IS 374:2019"],
+  "acceptableAlternatives": ["IS 374"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "SAFETY", "standardNumber": "IS 302 (Part 1):2024" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 8 Construction and Safety Wire",
+    "Clause 13 Air Delivery and Energy Consumption"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Verified fan procurement case conforming to IS 374:2019 revision.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 374:2019 Electric Ceiling Type Fans and Regulators"
+}

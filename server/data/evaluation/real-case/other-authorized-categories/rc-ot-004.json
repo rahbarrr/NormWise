@@ -1,0 +1,27 @@
+{
+  "caseId": "RC-OT-004",
+  "category": "other-authorized-categories",
+  "caseType": "NO_MATCH",
+  "requirementText": "Procurement of specialized titanium alloy cryogenic propellant injection valves for orbital rocket stage propulsion systems.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Cryogenic Propellant Valve",
+    "material": "Titanium Alloy",
+    "application": "Orbital Rocket Propulsion",
+    "capacity": null,
+    "technicalCharacteristics": ["Cryogenic", "Propellant Injection"],
+    "intendedUse": "Spacecraft Propulsion",
+    "relevantTerminology": ["Cryogenic Valve", "Rocket Propulsion"]
+  },
+  "expectedStandards": [],
+  "acceptableAlternatives": [],
+  "expectedCurrentness": "UNKNOWN",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "INSUFFICIENT_EVIDENCE",
+  "expectedEvidenceRequirements": [],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Safety rule test: Specialized space hardware completely absent from BIS civil commercial catalog. Engine MUST return NO_MATCH or INSUFFICIENT_EVIDENCE and NEVER force an unrelated consumer valve or pressure cooker standard.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Invariant: No Forced Recommendations"
+}

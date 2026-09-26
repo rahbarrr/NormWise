@@ -1,0 +1,27 @@
+{
+  "caseId": "RC-LT-002",
+  "category": "lighting",
+  "caseType": "AMBIGUOUS",
+  "requirementText": "Street light fixture for road.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Street Light",
+    "material": null,
+    "application": "Road",
+    "capacity": null,
+    "technicalCharacteristics": [],
+    "intendedUse": "Road Lighting",
+    "relevantTerminology": ["Street Light"]
+  },
+  "expectedStandards": ["IS 10322 (Part 5/Sec 3):2012"],
+  "acceptableAlternatives": ["IS 10322"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "INSUFFICIENT_EVIDENCE",
+  "expectedEvidenceRequirements": [],
+  "ambiguityLevel": "HIGH",
+  "verificationLevel": "VERIFIED",
+  "notes": "Highly ambiguous lighting request missing wattage, light source technology (LED vs conventional discharge), IP rating, and voltage. Clarification required.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Lighting Evaluation Matrix"
+}

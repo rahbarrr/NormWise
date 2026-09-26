@@ -1,0 +1,40 @@
+{
+  "caseId": "RC-LT-003",
+  "category": "lighting",
+  "caseType": "MULTIPLE_STANDARDS",
+  "requirementText": "Outdoor LED road lighting luminaires conforming to IS 10322 with internal electronic controlgear conforming to IS 16103 and LED modules tested to IS 16102.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Outdoor LED Luminaire",
+    "material": null,
+    "application": "Road Lighting",
+    "capacity": null,
+    "technicalCharacteristics": [
+      "Electronic Controlgear",
+      "LED Module"
+    ],
+    "intendedUse": "Road Illumination",
+    "relevantTerminology": [
+      "LED Luminaire",
+      "Controlgear",
+      "Self-ballasted LED"
+    ]
+  },
+  "expectedStandards": ["IS 10322 (Part 5/Sec 3):2012"],
+  "acceptableAlternatives": ["IS 10322"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "SAFETY", "standardNumber": "IS 16102 (Part 1):2012" },
+    { "type": "COMPONENT", "standardNumber": "IS 16103 (Part 1):2012" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 5 Luminaire Construction",
+    "Controlgear Safety IS 16103"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Complex lighting specification citing luminaire, controlgear driver, and LED safety standards. IS 10322 must remain primary.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 10322 (Part 5/Sec 3):2012 Normative References"
+}

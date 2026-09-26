@@ -1,0 +1,38 @@
+{
+  "caseId": "RC-EA-004",
+  "category": "electrical-accessories",
+  "caseType": "CLEAR",
+  "requirementText": "General electrical safety compliance and insulation resistance testing for motorized commercial appliance according to IS 302 (Part 1).",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Electrical Appliance",
+    "material": null,
+    "application": "Commercial",
+    "capacity": null,
+    "technicalCharacteristics": [
+      "Insulation Resistance",
+      "Leakage Current"
+    ],
+    "intendedUse": "Commercial Operation",
+    "relevantTerminology": [
+      "Electrical Safety",
+      "Household and Similar Electrical Appliances"
+    ]
+  },
+  "expectedStandards": ["IS 302 (Part 1):2024"],
+  "acceptableAlternatives": ["IS 302 (Part 1)"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [
+    { "type": "SAFETY", "standardNumber": "IS 2347:2023" }
+  ],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "Clause 8 Protection Against Electric Shock",
+    "Clause 13 Leakage Current and Electric Strength"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Verified horizontal safety standard for electromechanical devices conforming to IS 302 (Part 1):2024 revision.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS IS 302 (Part 1):2024 Safety of Household and Similar Electrical Appliances"
+}

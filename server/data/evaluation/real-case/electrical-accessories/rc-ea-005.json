@@ -1,0 +1,29 @@
+{
+  "caseId": "RC-EA-005",
+  "category": "electrical-accessories",
+  "caseType": "MULTILINGUAL",
+  "requirementText": "গৃহস্থালি ব্যবহারের জন্য ১৬ অ্যাম্পিয়ার ৩-পিন প্লাগ এবং সকেট-আউটলেট, বিআইএস মানদণ্ড আইএস ১২৯৩ অনুযায়ী।",
+  "language": "bn",
+  "expectedAttributes": {
+    "product": "Plugs and Socket-Outlets",
+    "material": null,
+    "application": "Household",
+    "capacity": "16A",
+    "technicalCharacteristics": ["3-pin"],
+    "intendedUse": "Household Wiring",
+    "relevantTerminology": ["প্লাগ", "সকেট-আউটলেট", "আইএস ১২৯৩"]
+  },
+  "expectedStandards": ["IS 1293:2019"],
+  "acceptableAlternatives": ["IS 1293"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "POTENTIALLY_APPLICABLE",
+  "expectedEvidenceRequirements": [
+    "DPIIT Plugs and Sockets Quality Control Order"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Bengali linguistic evaluation case for electrical wiring components matching IS 1293.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Eastern Indic Linguistic Benchmark"
+}

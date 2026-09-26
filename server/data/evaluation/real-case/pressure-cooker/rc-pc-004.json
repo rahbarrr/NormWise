@@ -1,0 +1,31 @@
+{
+  "caseId": "RC-PC-004",
+  "category": "pressure-cooker",
+  "caseType": "OUTDATED_STANDARD",
+  "requirementText": "Procurement tender citing legacy procurement code: Supply of 5L pressure cookers conforming to IS 2347:2014 specification.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": null,
+    "application": null,
+    "capacity": "5 Litre",
+    "technicalCharacteristics": ["Sixth Revision"],
+    "intendedUse": "Cooking",
+    "relevantTerminology": ["Pressure Cooker", "IS 2347:2014"]
+  },
+  "expectedStandards": ["IS 2347:2023"],
+  "acceptableAlternatives": ["IS 2347:2014"],
+  "expectedCurrentness": "SUPERSEDED",
+  "expectedRelationships": [
+    { "type": "SUPERSEDED_BY", "standardNumber": "IS 2347:2023" }
+  ],
+  "expectedComplianceOutcome": "REQUIRES_REVIEW",
+  "expectedEvidenceRequirements": [
+    "Gazette Notification for Revision 7 (2023)"
+  ],
+  "ambiguityLevel": "CLEAR",
+  "verificationLevel": "VERIFIED",
+  "notes": "Tests engine currentness resolution. Must recommend IS 2347:2023 as current replacement while flagging that cited standard IS 2347:2014 is SUPERSEDED.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "BIS Gazette Notification superseding IS 2347:2014 with IS 2347:2023"
+}

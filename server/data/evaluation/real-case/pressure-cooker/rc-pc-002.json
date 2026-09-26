@@ -1,0 +1,27 @@
+{
+  "caseId": "RC-PC-002",
+  "category": "pressure-cooker",
+  "caseType": "AMBIGUOUS",
+  "requirementText": "Need standard for a pressure cooker.",
+  "language": "en",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": null,
+    "application": null,
+    "capacity": null,
+    "technicalCharacteristics": [],
+    "intendedUse": null,
+    "relevantTerminology": ["Pressure Cooker"]
+  },
+  "expectedStandards": ["IS 2347:2023"],
+  "acceptableAlternatives": ["IS 2347"],
+  "expectedCurrentness": "CURRENT",
+  "expectedRelationships": [],
+  "expectedComplianceOutcome": "INSUFFICIENT_EVIDENCE",
+  "expectedEvidenceRequirements": [],
+  "ambiguityLevel": "HIGH",
+  "verificationLevel": "VERIFIED",
+  "notes": "Highly underspecified requirement omitting material, capacity, and application. Engine should flag CLARIFICATION_REQUIRED instead of forcing specific parameters.",
+  "datasetVersion": "2026.09",
+  "sourceReference": "NormWise Engineering Ambiguity Handling Protocol v2.1"
+}

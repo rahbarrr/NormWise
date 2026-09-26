@@ -17,7 +17,11 @@
     "db:seed": "npm run db:seed --prefix server",
     "smoke:test": "npm run smoke:test --prefix server",
     "evaluate:recommendations": "npm run evaluate:recommendations --prefix server --",
-    "evaluate:multilingual": "npm run evaluate:multilingual --prefix server",
+    "evaluate:retrieval": "npm run evaluate:retrieval --prefix server --",
+    "evaluate:multilingual": "npm run evaluate:multilingual --prefix server --",
+    "evaluate:currentness": "npm run evaluate:currentness --prefix server --",
+    "evaluate:compliance": "npm run evaluate:compliance --prefix server --",
+    "evaluate:all": "npm run evaluate:all --prefix server --",
     "test": "npm test --prefix server"
   },
   "dependencies": {

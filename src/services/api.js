@@ -599,6 +599,22 @@ export async function evaluateSingleCaseApi(casePayload) {
   return res.result;
 }
 
+export async function submitHumanFeedbackApi(resultId, feedback = {}) {
+  const res = await apiRequest(`/admin/evaluation/results/${resultId}/feedback`, {
+    method: "POST",
+    body: JSON.stringify(feedback),
+  });
+  return res.result;
+}
+
+export async function compareRetrievalStrategiesApi(payload = {}) {
+  const res = await apiRequest("/admin/evaluation/compare-retrieval", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return res.comparison;
+}
+
 // ==========================================
 // Phase 18: Authentication & Security APIs
 // ==========================================
