@@ -1,23 +1,21 @@
 /**
  * NormWise Related Standards Service
- * Traverses relational knowledge graph of standards, materials, components, and normative references
+ * Delegates to standardRelationshipService (Phase 12) for unified relationship handling.
  */
-import prisma from "../config/db.js";
+import { getRelatedStandards as getRelStandards } from "./standardRelationshipService.js";
 
 export async function getRelatedStandards(standardId) {
-  const links = await prisma.relatedStandard.findMany({
-    where: { standardId },
-    include: {
-      relatedStandard: true,
-    },
-  });
-
-  return links.map((link) => ({
-    relationshipType: link.relationshipType,
-    standardId: link.relatedStandard.id,
-    standardNumber: link.relatedStandard.standardNumber,
-    title: link.relatedStandard.title,
-    status: link.relatedStandard.status,
-    description: link.relatedStandard.description,
+  const result = await getRelStandards(standardId, { direction: "ALL" });
+  return (result.relatedStandards || []).map((rel) => ({
+    relationshipId: rel.relationshipId,
+    relationshipType: rel.relationshipType,
+    direction: rel.direction,
+    standardId: rel.standard.id,
+    standardNumber: rel.standard.standardNumber,
+    title: rel.standard.title,
+    status: rel.standard.status,
+    notes: rel.notes,
+    evidenceAvailable: rel.evidenceAvailable,
+    evidence: rel.evidence,
   }));
 }

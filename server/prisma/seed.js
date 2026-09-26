@@ -264,6 +264,109 @@ async function main() {
     },
   });
 
+  // Phase 12: Allied Standards for Knowledge Relationships
+  const std5522 = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 5522:2014",
+      title: "Stainless steel sheets and strips for utensils — Specification",
+      edition: "2014",
+      revision: "Fourth Revision",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: Specifies requirements for stainless steel sheet and strip used for utensil fabrication and cooking vessels.",
+      scope: "Covers cold-rolled stainless steel sheets for food contact utensils.",
+      keywords: ["stainless steel", "utensils", "sheet", "strip", "material"],
+      applicableProducts: ["Stainless Steel Utensil Sheet", "Cookware Materials"],
+      materials: ["Stainless Steel Grade 304", "AISI 304"],
+      applications: ["Cookware Fabrication", "Utensils", "Pressure Cooker Bodies"],
+    },
+  });
+
+  const std15997 = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 15997:2012",
+      title: "Low nickel austenitic stainless steel sheet and strip for utensils and appliances — Specification",
+      edition: "2012",
+      revision: "First Edition",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: Covers low-nickel austenitic stainless steel alloys for culinary appliances and vessels.",
+      scope: "Alternative alloy standard for economic utensil production.",
+      keywords: ["low nickel", "austenitic", "stainless steel", "utensils", "appliances"],
+      applicableProducts: ["Low Nickel Sheet", "Appliance Alloy"],
+      materials: ["Low Nickel Austenitic Steel"],
+      applications: ["Appliance Outer Body", "Cooking Vessels"],
+    },
+  });
+
+  const std7466 = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 7466:1994",
+      title: "Rubber gaskets for domestic pressure cookers — Specification",
+      edition: "1994",
+      revision: "Second Revision",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: Specifies requirements for rubber and elastomeric sealing gaskets used in domestic pressure cookers.",
+      scope: "Covers food-grade vulcanized rubber gaskets resistant to heat and steam under pressure.",
+      keywords: ["rubber gasket", "sealing ring", "component", "pressure cooker"],
+      applicableProducts: ["Rubber Gaskets", "Sealing Rings"],
+      materials: ["Food Grade Vulcanized Rubber", "Silicone Elastomer"],
+      applications: ["Pressure Cooker Sealing", "Safety Assemblies"],
+    },
+  });
+
+  const std2 = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 2:2022",
+      title: "Rules for rounding off numerical values",
+      edition: "2022",
+      revision: "Third Revision",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: General standard for rounding numerical values cited in test result verifications and clause criteria.",
+      scope: "Guidance on rounding of observed or calculated values in Indian Standards specifications.",
+      keywords: ["rounding off", "numerical values", "normative reference", "calculations"],
+      applicableProducts: ["General Engineering Calculations"],
+      materials: [],
+      applications: ["Mathematical Clause Thresholds", "Test Measurement Reporting"],
+    },
+  });
+
+  const std16102 = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 16102 (Part 1):2012",
+      title: "Self-ballasted LED lamps for general lighting services — Part 1: Safety requirements",
+      edition: "2012",
+      revision: "First Edition",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: Specifies safety and interchangeability requirements for self-ballasted LED lamps.",
+      scope: "Safety testing for LED lamp fixtures operating on supply voltages up to 250V.",
+      keywords: ["LED lamp", "safety", "ballasted", "lighting"],
+      applicableProducts: ["Self-Ballasted LED Lamp", "Retrofit Lamps"],
+      materials: ["Polycarbonate", "Aluminum Housing"],
+      applications: ["General Illumination", "Street and Outdoor Lighting"],
+    },
+  });
+
+  const std16103 = await prisma.standard.create({
+    data: {
+      standardNumber: "IS 16103 (Part 1):2012",
+      title: "LED modules for general lighting — Part 1: Safety specifications",
+      edition: "2012",
+      revision: "First Edition",
+      status: "CURRENT",
+      description:
+        "DEMO RECORD: Safety specifications for LED modules used in luminaires and street lighting equipment.",
+      scope: "Requirements for general lighting LED modules without integrated controlgear.",
+      keywords: ["LED module", "component", "safety", "street lighting"],
+      applicableProducts: ["LED Module", "COB Light Engine"],
+      materials: ["Metal Core PCB", "Semiconductor Array"],
+      applications: ["Road Lighting Fixtures", "Industrial Luminaires"],
+    },
+  });
+
   // Amendments
   await prisma.standardAmendment.createMany({
     data: [
@@ -291,23 +394,88 @@ async function main() {
     ],
   });
 
-  // Related Standards
+  // Related Standards Knowledge Relationships (Phase 12)
   await prisma.relatedStandard.createMany({
     data: [
+      // IS 2347:2023 -> Allied Standards
       {
         standardId: stdCookerCurrent.id,
         relatedStandardId: stdSteel.id,
         relationshipType: "MATERIAL",
+        notes: "Demo relationship — verify against authoritative BIS source: Stainless steel plate/sheet specification for vessel bodies.",
+        status: "DEMO",
+      },
+      {
+        standardId: stdCookerCurrent.id,
+        relatedStandardId: std5522.id,
+        relationshipType: "MATERIAL",
+        notes: "Demo relationship — verify against authoritative BIS source: Dedicated stainless steel utensil material standard.",
+        status: "DEMO",
+      },
+      {
+        standardId: stdCookerCurrent.id,
+        relatedStandardId: std15997.id,
+        relationshipType: "MATERIAL",
+        notes: "Demo relationship — verify against authoritative BIS source: Alternative low-nickel stainless steel specification.",
+        status: "DEMO",
+      },
+      {
+        standardId: stdCookerCurrent.id,
+        relatedStandardId: std7466.id,
+        relationshipType: "COMPONENT",
+        notes: "Demo relationship — verify against authoritative BIS source: Sealing gasket specification mandatory for pressure retention.",
+        status: "DEMO",
+      },
+      {
+        standardId: stdCookerCurrent.id,
+        relatedStandardId: std2.id,
+        relationshipType: "NORMATIVE_REFERENCE",
+        notes: "Demo relationship — verify against authoritative BIS source: Standard numerical rounding rules for clause tolerances.",
+        status: "DEMO",
       },
       {
         standardId: stdCookerSuperseded.id,
         relatedStandardId: stdCookerCurrent.id,
         relationshipType: "SUPERSEDED_BY",
+        notes: "Demo relationship — verify against authoritative BIS source: 2014 edition superseded by 2023 publication.",
+        status: "DEMO",
       },
       {
         standardId: stdSafety.id,
         relatedStandardId: stdCookerCurrent.id,
         relationshipType: "SAFETY",
+        notes: "Demo relationship — verify against authoritative BIS source: General electrical safety standard for electric pressure cookers.",
+        status: "DEMO",
+      },
+      // IS 10322 (Part 5/Sec 3):2012 -> Allied Standards
+      {
+        standardId: stdLED.id,
+        relatedStandardId: std16102.id,
+        relationshipType: "SAFETY",
+        notes: "Demo relationship — verify against authoritative BIS source: Safety requirements for self-ballasted LED light sources.",
+        status: "DEMO",
+      },
+      {
+        standardId: stdLED.id,
+        relatedStandardId: std16103.id,
+        relationshipType: "COMPONENT",
+        notes: "Demo relationship — verify against authoritative BIS source: Subsystem LED module specifications for road fixtures.",
+        status: "DEMO",
+      },
+      {
+        standardId: stdLED.id,
+        relatedStandardId: stdSafety.id,
+        relationshipType: "SAFETY",
+        notes: "Demo relationship — verify against authoritative BIS source: General electrical insulation and earth bonding requirements.",
+        status: "DEMO",
+      },
+      // IS 374:2019 -> Allied Standards
+      {
+        standardId: stdFan.id,
+        relatedStandardId: stdSafety.id,
+        relationshipType: "SAFETY",
+        notes: "Demo relationship — verify against authoritative BIS source: Electrical safety and insulation requirements for fan motors.",
+        status: "DEMO",
       },
     ],
   });

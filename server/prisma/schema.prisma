@@ -45,14 +45,17 @@ enum EvidenceType {
 
 enum RelationshipType {
   NORMATIVE_REFERENCE
-  MATERIAL
-  COMPONENT
+  TERMINOLOGY
   TEST_METHOD
   SAFETY
   INSTALLATION
   EQUIVALENT
   SUPERSEDED_BY
   AMENDED_BY
+  MANDATORY_UNDER
+  APPLIES_TO
+  COMPONENT
+  MATERIAL
   OTHER
 }
 
@@ -205,6 +208,7 @@ model Evidence {
 
   recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
   standard       Standard?      @relation(fields: [standardId], references: [id], onDelete: SetNull)
+  relatedStandards RelatedStandard[]
 
   @@map("evidence")
 }
@@ -214,11 +218,20 @@ model RelatedStandard {
   standardId        String
   relatedStandardId String
   relationshipType  RelationshipType @default(NORMATIVE_REFERENCE)
+  evidenceId        String?
+  notes             String?          @db.Text
+  status            String           @default("DEMO")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @default(now()) @updatedAt
 
-  standard        Standard @relation("StandardToRelated", fields: [standardId], references: [id], onDelete: Cascade)
-  relatedStandard Standard @relation("RelatedToStandard", fields: [relatedStandardId], references: [id], onDelete: Cascade)
+  standard        Standard  @relation("StandardToRelated", fields: [standardId], references: [id], onDelete: Cascade)
+  relatedStandard Standard  @relation("RelatedToStandard", fields: [relatedStandardId], references: [id], onDelete: Cascade)
+  evidence        Evidence? @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
 
-  @@unique([standardId, relatedStandardId])
+  @@unique([standardId, relatedStandardId, relationshipType])
+  @@index([standardId])
+  @@index([relatedStandardId])
+  @@index([relationshipType])
   @@map("related_standards")
 }
 

@@ -23,6 +23,7 @@ import {
   requestTechnicalReview,
   toggleSaveRecommendation,
 } from "../services/api";
+import { getRelatedStandards } from "../services/standardApi";
 
 export const Results = () => {
   const [searchParams] = useSearchParams();
@@ -89,11 +90,17 @@ export const Results = () => {
               }))
             : baseMock.evidence;
 
+          const recStdNumber = apiData.standard || baseMock.recommendedStandard;
+          const relatedRes = await getRelatedStandards(recStdNumber).catch(() => null);
+          const finalAllied = relatedRes?.relatedStandards && relatedRes.relatedStandards.length > 0
+            ? relatedRes.relatedStandards
+            : mappedAllied;
+
           setResult({
             ...baseMock,
             id: apiData.id,
             requirement: apiData.requirement || apiData.requirementText,
-            recommendedStandard: apiData.standard || baseMock.recommendedStandard,
+            recommendedStandard: recStdNumber,
             standardTitle: apiData.standardTitle || baseMock.standardTitle,
             confidence: apiData.confidence || baseMock.confidence,
             status: apiData.status,
@@ -101,7 +108,8 @@ export const Results = () => {
             matchReasons: apiData.decisionNotes
               ? [apiData.decisionNotes, ...baseMock.matchReasons.slice(1)]
               : baseMock.matchReasons,
-            alliedStandards: mappedAllied,
+            alliedStandards: finalAllied,
+            isDemoDataset: Boolean(relatedRes?.isDemoDataset),
             evidence: mappedEvidence,
             attributes: {
               product: apiData.product || baseMock.attributes?.product,
@@ -117,6 +125,12 @@ export const Results = () => {
 
       // Default query or mock fallback
       const mock = getMockResultForQuery(queryParam || "", passedAttributes);
+      const fallbackStdNumber = mock.recommendedStandard || "IS 2347:2023";
+      const relatedRes = await getRelatedStandards(fallbackStdNumber).catch(() => null);
+      if (relatedRes?.relatedStandards?.length > 0) {
+        mock.alliedStandards = relatedRes.relatedStandards;
+        mock.isDemoDataset = Boolean(relatedRes.isDemoDataset);
+      }
       setResult(mock);
     } catch (err) {
       console.error("Failed to load recommendation result:", err);
@@ -365,9 +379,9 @@ export const Results = () => {
       {/* Allied Standards & Normative References */}
       <AlliedStandards
         alliedStandards={result.alliedStandards}
-        onSelectStandard={(stdNumber) => {
-          navigate(`/results?standard=${encodeURIComponent(stdNumber)}&q=${encodeURIComponent(result.requirement)}`);
-        }}
+        primaryStandard={result.recommendedStandard}
+        isDemoDataset={result.isDemoDataset}
+        onOpenEvidence={handleOpenEvidence}
       />
 
       {/* Supporting Evidence List with Drawer trigger */}

@@ -15,6 +15,7 @@ import {
   FileText,
   ExternalLink,
   UploadCloud,
+  Network,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
 import { cn } from "../../lib/utils";
@@ -58,6 +59,13 @@ const referenceNavItems = [
     path: "/evidence",
     icon: FileCheck2,
     badge: null,
+  },
+  {
+    name: "Knowledge Graph",
+    path: "/knowledge",
+    icon: Network,
+    badge: "Allied",
+    badgeVariant: "blue",
   },
   {
     name: "Human Review",
@@ -238,6 +246,8 @@ export const Sidebar = ({
                         "ml-auto text-xs px-2 py-0.5 rounded-full font-medium",
                         item.badgeVariant === "amber"
                           ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          : item.badgeVariant === "blue"
+                          ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
                           : isActive
                           ? "bg-blue-800 text-blue-100"
                           : "bg-slate-800 text-slate-300"

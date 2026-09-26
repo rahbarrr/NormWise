@@ -13,6 +13,8 @@ import { Documents } from "./pages/Documents";
 import { Saved } from "./pages/Saved";
 import { Settings } from "./pages/Settings";
 import { Help } from "./pages/Help";
+import { StandardDetail } from "./pages/StandardDetail";
+import { KnowledgeGraph } from "./pages/KnowledgeGraph";
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/history" element={<History />} />
           <Route path="/history/:id" element={<RecordDetail />} />
+          <Route path="/standards/:id" element={<StandardDetail />} />
+          <Route path="/knowledge" element={<KnowledgeGraph />} />
           <Route path="/saved" element={<Saved />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/help" element={<Help />} />

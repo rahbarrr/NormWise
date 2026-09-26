@@ -248,6 +248,7 @@ export async function recommend(requirementText, options = {}) {
       warnings: alt.warnings,
     })),
     relatedStandards,
+    alliedStandards: relatedStandards,
     certification,
     evidence,
     explanation,
