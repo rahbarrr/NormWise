@@ -24,7 +24,7 @@ import { ReviewChecklist } from "../components/review/ReviewChecklist";
 import { getHistoryItemById } from "../data/mockHistory";
 import { MOCK_EVIDENCE_RECORDS } from "../data/mockEvidence";
 import { MOCK_CHECKLIST } from "../data/mockReview";
-import { getRecommendation, toggleSaveRecommendation } from "../services/api";
+import { getRecommendation, getEvidence, toggleSaveRecommendation } from "../services/api";
 
 export const RecordDetail = () => {
   const { id } = useParams();
@@ -40,6 +40,10 @@ export const RecordDetail = () => {
 
   // Saved toggle
   const [isSaved, setIsSaved] = useState(record?.saved || false);
+
+  // Evidence — live from API, fallback to mock
+  const [evidenceRecords, setEvidenceRecords] = useState(MOCK_EVIDENCE_RECORDS);
+  const [evidenceLoaded, setEvidenceLoaded] = useState(false);
 
   // Evidence Drawer state
   const [activeEvidence, setActiveEvidence] = useState(null);
@@ -63,68 +67,97 @@ export const RecordDetail = () => {
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
-    getRecommendation(id)
-      .then((data) => {
-        if (isMounted && data) {
-          const primaryStd =
-            data.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
-            data.recommendationStandards?.[0]?.standard;
-          const mapped = {
-            ...data,
-            requirement: data.requirement || data.requirementText || "Procurement Requirement",
-            standard: data.standard || primaryStd?.standardNumber || "IS 2347:2023",
-            standardTitle: data.standardTitle || primaryStd?.title || "Indian Standard Specification",
-            reviewer:
-              data.reviewer ||
-              data.reviews?.[0]?.reviewer?.name ||
-              data.user?.name ||
-              "Technical Committee",
-            status:
-              data.status === "ACCEPTED"
-                ? "Accepted"
-                : data.status === "NOT_APPLICABLE"
-                ? "Not Applicable"
-                : data.status === "UNDER_TECHNICAL_REVIEW"
-                ? "Under Technical Review"
-                : data.status === "CLARIFICATION_REQUESTED"
-                ? "Clarification Requested"
-                : data.status === "PENDING_REVIEW"
-                ? "Pending Review"
-                : data.status || "Pending Review",
-            confidence: data.confidence || 85,
-            createdAt: data.createdAt
-              ? new Date(data.createdAt).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })
-              : "Recent",
-            auditTrail:
-              data.auditEvents && data.auditEvents.length > 0
-                ? data.auditEvents.map((ae) => ({
-                    id: ae.id,
-                    action: ae.action,
-                    actor: ae.actor?.name || "System",
-                    time: ae.createdAt
-                      ? new Date(ae.createdAt).toLocaleTimeString("en-IN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "Recent",
-                    details: ae.details,
-                  }))
-                : data.auditTrail || [],
-          };
-          setRecord(mapped);
-          setIsSaved(Boolean(data.saved));
-        }
-      })
-      .catch((err) => {
-        console.warn("Using fallback record for detail view:", err.message);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
+
+    // Load recommendation details and evidence in parallel
+    Promise.allSettled([
+      getRecommendation(id),
+      getEvidence(id),
+    ]).then(([recResult, evResult]) => {
+      if (!isMounted) return;
+
+      // Recommendation
+      if (recResult.status === "fulfilled" && recResult.value) {
+        const data = recResult.value;
+        const primaryStd =
+          data.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
+          data.recommendationStandards?.[0]?.standard;
+        const mapped = {
+          ...data,
+          requirement: data.requirement || data.requirementText || "Procurement Requirement",
+          standard: data.standard || primaryStd?.standardNumber || "IS 2347:2023",
+          standardTitle: data.standardTitle || primaryStd?.title || "Indian Standard Specification",
+          reviewer:
+            data.reviewer ||
+            data.reviews?.[0]?.reviewer?.name ||
+            data.user?.name ||
+            "Technical Committee",
+          status:
+            data.status === "ACCEPTED"
+              ? "Accepted"
+              : data.status === "NOT_APPLICABLE"
+              ? "Not Applicable"
+              : data.status === "UNDER_TECHNICAL_REVIEW"
+              ? "Under Technical Review"
+              : data.status === "CLARIFICATION_REQUESTED"
+              ? "Clarification Requested"
+              : data.status === "PENDING_REVIEW"
+              ? "Pending Review"
+              : data.status || "Pending Review",
+          confidence: data.confidence || 85,
+          createdAt: data.createdAt
+            ? new Date(data.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "Recent",
+          auditTrail:
+            data.auditEvents && data.auditEvents.length > 0
+              ? data.auditEvents.map((ae) => ({
+                  id: ae.id,
+                  action: ae.action,
+                  actor: ae.actor?.name || "System",
+                  time: ae.createdAt
+                    ? new Date(ae.createdAt).toLocaleTimeString("en-IN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Recent",
+                  details: ae.details,
+                }))
+              : data.auditTrail || [],
+        };
+        setRecord(mapped);
+        setIsSaved(Boolean(data.saved));
+      }
+
+      // Evidence — map API shape to UI EvidenceList shape
+      if (evResult.status === "fulfilled" && Array.isArray(evResult.value) && evResult.value.length > 0) {
+        const mapped = evResult.value.map((e) => ({
+          id: e.id,
+          type: e.type || "SCOPE",
+          standard: e.standard?.standardNumber || "—",
+          reference: e.reference || "—",
+          supports: e.source || "Standard requirement",
+          content: e.content || "",
+          source: e.source || "BIS Catalog",
+          status: e.status || "Verified",
+          excerpt: e.content,
+          // Legacy shape compatibility
+          category: e.type,
+          clause: e.reference,
+          clauseTitle: e.source,
+          relevanceScore: 90,
+        }));
+        setEvidenceRecords(mapped);
+        setEvidenceLoaded(true);
+      }
+    }).catch((err) => {
+      console.warn("Using fallback record for detail view:", err.message);
+    }).finally(() => {
+      if (isMounted) setIsLoading(false);
+    });
+
     return () => {
       isMounted = false;
     };
@@ -133,13 +166,14 @@ export const RecordDetail = () => {
   const handleOpenEvidence = (recordOrId) => {
     if (typeof recordOrId === "string") {
       const found =
-        MOCK_EVIDENCE_RECORDS.find((rec) => rec.id === recordOrId) ||
+        evidenceRecords.find((rec) => rec.id === recordOrId) ||
+        evidenceRecords[0] ||
         MOCK_EVIDENCE_RECORDS[0];
       setActiveEvidence(found);
     } else if (recordOrId) {
       setActiveEvidence(recordOrId);
     } else {
-      setActiveEvidence(MOCK_EVIDENCE_RECORDS[0]);
+      setActiveEvidence(evidenceRecords[0] || MOCK_EVIDENCE_RECORDS[0]);
     }
     setIsEvidenceDrawerOpen(true);
   };
@@ -345,7 +379,7 @@ export const RecordDetail = () => {
           }`}
         >
           <FileCheck2 className="w-4 h-4" />
-          <span>Evidence ({MOCK_EVIDENCE_RECORDS.length})</span>
+          <span>Evidence ({evidenceRecords.length}){evidenceLoaded && <span className="ml-1 text-[10px] text-emerald-600 font-bold">•LIVE</span>}</span>
         </button>
 
         <button
@@ -406,7 +440,7 @@ export const RecordDetail = () => {
             </div>
 
             <EvidenceList
-              records={MOCK_EVIDENCE_RECORDS}
+              records={evidenceRecords}
               onViewDetails={handleOpenEvidence}
             />
           </div>

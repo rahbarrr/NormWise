@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { EvidenceHeader } from "../components/evidence/EvidenceHeader";
 import { RecommendationContext } from "../components/evidence/RecommendationContext";
@@ -18,16 +18,24 @@ import {
   EvidenceWarning,
 } from "../components/evidence/EvidenceEmptyState";
 import { MOCK_EVIDENCE_RECORDS } from "../data/mockEvidence";
+import { getEvidence, getRecommendation } from "../services/api";
 
 export const Evidence = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const standardParam = id || searchParams.get("standard") || "IS 2347:2023";
+  // id param can be a recommendation UUID or a standard code
+  const recIdParam = id || searchParams.get("id");
+  const standardParam = searchParams.get("standard") || "IS 2347:2023";
 
   // State
   const [evidenceRecords, setEvidenceRecords] = useState(MOCK_EVIDENCE_RECORDS);
+  const [standardCode, setStandardCode] = useState(standardParam);
+  const [standardTitle, setStandardTitle] = useState("Pressure cookers — Specification");
+  const [confidence, setConfidence] = useState(94);
+  const [isLiveData, setIsLiveData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("relevance");
@@ -43,6 +51,66 @@ export const Evidence = () => {
     }, 3500);
   };
 
+  // Fetch live evidence if we have a recommendation ID
+  useEffect(() => {
+    let isMounted = true;
+    if (!recIdParam) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    Promise.allSettled([
+      getEvidence(recIdParam),
+      getRecommendation(recIdParam),
+    ]).then(([evResult, recResult]) => {
+      if (!isMounted) return;
+
+      // Load evidence
+      if (
+        evResult.status === "fulfilled" &&
+        Array.isArray(evResult.value) &&
+        evResult.value.length > 0
+      ) {
+        const mapped = evResult.value.map((e) => ({
+          id: e.id,
+          type: e.type || "SCOPE",
+          standard: e.standard?.standardNumber || standardCode,
+          reference: e.reference || "—",
+          supports: e.source || "Standard requirement",
+          content: e.content || "",
+          source: e.source || "BIS Catalog",
+          status: e.status || "Verified",
+          excerpt: e.content,
+          category: e.type,
+          clause: e.reference,
+          clauseTitle: e.source,
+          relevanceScore: 90,
+        }));
+        setEvidenceRecords(mapped);
+        setIsLiveData(true);
+      }
+
+      // Load standard info from the recommendation
+      if (recResult.status === "fulfilled" && recResult.value) {
+        const rec = recResult.value;
+        const primaryRs =
+          rec.recommendationStandards?.find((rs) => rs.isPrimary) ||
+          rec.recommendationStandards?.[0];
+        const std = primaryRs?.standard;
+        if (std?.standardNumber) setStandardCode(std.standardNumber);
+        if (std?.title) setStandardTitle(std.title);
+        if (rec.confidence) setConfidence(rec.confidence);
+      }
+    }).catch(() => {
+      // Keep mock data on error
+    }).finally(() => {
+      if (isMounted) setIsLoading(false);
+    });
+
+    return () => { isMounted = false; };
+  }, [recIdParam]);
+
   const handleDownloadReport = () => {
     showToast("Evidence report generation will be connected to the backend.");
   };
@@ -56,23 +124,24 @@ export const Evidence = () => {
   const filteredRecords = evidenceRecords
     .filter((rec) => {
       const matchesFilter =
-        activeFilter === "All" || rec.type.toLowerCase() === activeFilter.toLowerCase();
+        activeFilter === "All" ||
+        (rec.type || rec.category || "").toLowerCase() === activeFilter.toLowerCase();
 
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
-        rec.id.toLowerCase().includes(q) ||
-        rec.standard.toLowerCase().includes(q) ||
-        rec.type.toLowerCase().includes(q) ||
-        rec.supports.toLowerCase().includes(q) ||
-        rec.reference.toLowerCase().includes(q);
+        (rec.id || "").toLowerCase().includes(q) ||
+        (rec.standard || "").toLowerCase().includes(q) ||
+        (rec.type || rec.category || "").toLowerCase().includes(q) ||
+        (rec.supports || rec.source || "").toLowerCase().includes(q) ||
+        (rec.reference || rec.clause || "").toLowerCase().includes(q);
 
       return matchesFilter && matchesSearch;
     })
     .sort((a, b) => {
-      if (sortBy === "type") return a.type.localeCompare(b.type);
-      if (sortBy === "standard") return a.standard.localeCompare(b.standard);
-      if (sortBy === "recent") return b.id.localeCompare(a.id);
+      if (sortBy === "type") return (a.type || "").localeCompare(b.type || "");
+      if (sortBy === "standard") return (a.standard || "").localeCompare(b.standard || "");
+      if (sortBy === "recent") return (b.id || "").localeCompare(a.id || "");
       return 0; // relevance
     });
 
@@ -87,7 +156,7 @@ export const Evidence = () => {
     );
   }
 
-  if (evidenceRecords.length === 0) {
+  if (!isLoading && evidenceRecords.length === 0) {
     return (
       <div className="py-8">
         <EvidenceEmptyState onBack={() => navigate("/results")} />
@@ -100,7 +169,7 @@ export const Evidence = () => {
       {/* 1. Header with breadcrumbs and actions */}
       <EvidenceHeader
         onDownloadReport={handleDownloadReport}
-        standardCode={standardParam}
+        standardCode={standardCode}
       />
 
       {/* Toast Notification */}
@@ -122,14 +191,15 @@ export const Evidence = () => {
 
       {/* 2. Recommendation Context Banner */}
       <RecommendationContext
-        standard={standardParam}
-        title="Pressure cookers — Specification"
-        confidence={94}
+        standard={standardCode}
+        title={standardTitle}
+        confidence={confidence}
         status="Current"
+        isLiveData={isLiveData}
       />
 
       {/* 3. Evidence Summary Metrics */}
-      <EvidenceSummary count={evidenceRecords.length} />
+      <EvidenceSummary count={evidenceRecords.length} isLiveData={isLiveData} />
 
       {/* 4. Recommendation Traceability Lineage Map */}
       <TraceabilityMap />
@@ -155,14 +225,18 @@ export const Evidence = () => {
       </div>
 
       {/* 6. Supporting Evidence List */}
-      {filteredRecords.length > 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16 text-slate-400">
+          <span className="text-sm animate-pulse">Loading evidence records…</span>
+        </div>
+      ) : filteredRecords.length > 0 ? (
         <EvidenceList
           records={filteredRecords}
           onViewDetails={handleOpenDetail}
         />
       ) : (
         <div className="p-8 text-center bg-white rounded-xl border border-slate-200 text-xs text-slate-500">
-          No evidence records matched your search or filter. Try selecting "All" or clearing the search query.
+          No evidence records matched your search or filter. Try selecting &ldquo;All&rdquo; or clearing the search query.
         </div>
       )}
 

@@ -36,22 +36,46 @@ import {
   requestClarification,
   markNotApplicable,
   getAuditEvents,
+  getRecommendations,
 } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 export const Review = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
-  const idParam = id || searchParams.get("id") || "REC-2026-0842";
+  const idParam = id || searchParams.get("id") || null;
   const standardParam = searchParams.get("standard") || MOCK_REVIEW_DATA.standard;
   const initialActionParam = searchParams.get("action");
+
+  // Queue state — when no ID, show pending items to choose from
+  const [pendingQueue, setPendingQueue] = useState([]);
+  const [isLoadingQueue, setIsLoadingQueue] = useState(false);
+
+  // Build reviewer from auth context or fallback to mock
+  const activeReviewer = user
+    ? {
+        name: user.name || user.email,
+        title: user.role === "ADMIN"
+          ? "System Administrator"
+          : user.role === "TECHNICAL_REVIEWER"
+          ? "Technical Reviewer"
+          : "Procurement Officer",
+        department: "Standards & Procurement Division",
+        id: user.id,
+      }
+    : MOCK_REVIEWER;
+
+  // Related standards from loaded recommendation
+  const [relatedStandards, setRelatedStandards] = useState(MOCK_RELATED_STANDARDS_REVIEW);
 
   // State
   const [reviewData, setReviewData] = useState({
     ...MOCK_REVIEW_DATA,
-    id: idParam,
+    id: idParam || "—",
     standard: standardParam,
   });
   const [status, setStatus] = useState("Pending Review");
@@ -89,8 +113,27 @@ export const Review = () => {
     }, 3500);
   };
 
+  // When no ID, load pending queue for selection
+  useEffect(() => {
+    if (!idParam) {
+      setIsLoadingQueue(true);
+      getRecommendations({ status: "PENDING_REVIEW", limit: 10 })
+        .then((result) => {
+          const items = result?.items || [];
+          setPendingQueue(items);
+          // Auto-navigate to first if only one found
+          if (items.length === 1) {
+            navigate(`/review/${items[0].id}`, { replace: true });
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoadingQueue(false));
+    }
+  }, [idParam]);
+
   // Fetch review from backend
   const loadReviewFromBackend = useCallback(async () => {
+    if (!idParam) { setIsLoading(false); return; }
     setIsLoading(true);
     setHasError(false);
     try {
@@ -99,8 +142,8 @@ export const Review = () => {
         const primaryStd =
           rec.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
           rec.recommendationStandards?.[0]?.standard;
-        const stdNumber = rec.standard || primaryStd?.standardNumber || prev.standard;
-        const stdTitle = rec.standardTitle || primaryStd?.title || prev.standardTitle;
+        const stdNumber = rec.standard || primaryStd?.standardNumber || standardParam;
+        const stdTitle = rec.standardTitle || primaryStd?.title || MOCK_REVIEW_DATA.standardTitle;
 
         setReviewData((prev) => ({
           ...prev,
@@ -142,6 +185,19 @@ export const Review = () => {
             }))
           );
         }
+
+        // Build related standards from non-primary alternatives
+        const alts = rec.recommendationStandards
+          ?.filter((rs) => !rs.isPrimary)
+          .map((rs) => ({
+            id: rs.standard?.id || rs.standardId,
+            code: rs.standard?.standardNumber,
+            title: rs.standard?.title,
+            status: rs.standard?.status || "CURRENT",
+            matchScore: rs.matchScore ? Math.round(rs.matchScore * 100) : null,
+          }))
+          .filter(Boolean) || [];
+        if (alts.length > 0) setRelatedStandards(alts);
       }
     } catch (err) {
       console.warn("Using local review data fallback:", err.message);
@@ -235,7 +291,7 @@ export const Review = () => {
     const newEvent = {
       id: `evt-${Date.now()}`,
       action: "Reviewer note added",
-      actor: MOCK_REVIEWER.name,
+      actor: activeReviewer.name,
       time: getDemoTime(),
       details: `Notes updated: "${notesText.slice(0, 80)}${
         notesText.length > 80 ? "..." : ""
@@ -272,7 +328,7 @@ export const Review = () => {
     const newEvent = {
       id: `evt-${Date.now()}`,
       action: "Recommendation accepted",
-      actor: MOCK_REVIEWER.name,
+      actor: activeReviewer.name,
       time: getDemoTime(),
       details: `Formal procurement acceptance recorded for ${reviewData.standard}.`,
     };
@@ -306,7 +362,7 @@ export const Review = () => {
     const newEvent = {
       id: `evt-${Date.now()}`,
       action: "Technical review requested",
-      actor: MOCK_REVIEWER.name,
+      actor: activeReviewer.name,
       time: getDemoTime(),
       details: `Referred to technical committee. Rationale: "${reason}"`,
     };
@@ -341,7 +397,7 @@ export const Review = () => {
     const newEvent = {
       id: `evt-${Date.now()}`,
       action: "Clarification requested",
-      actor: MOCK_REVIEWER.name,
+      actor: activeReviewer.name,
       time: getDemoTime(),
       details: `Requested [${category}]: "${question}"`,
     };
@@ -376,7 +432,7 @@ export const Review = () => {
     const newEvent = {
       id: `evt-${Date.now()}`,
       action: "Marked not applicable",
-      actor: MOCK_REVIEWER.name,
+      actor: activeReviewer.name,
       time: getDemoTime(),
       details: `Non-applicable determination: ${reason} — ${explanation}`,
     };
@@ -438,6 +494,87 @@ export const Review = () => {
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
           >
             Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No ID: Show pending review queue selector
+  if (!idParam) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 space-y-6 animate-in fade-in duration-200">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Technical Review Queue</h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Select a pending recommendation to begin technical review.
+          </p>
+        </div>
+
+        {isLoadingQueue ? (
+          <div className="flex items-center justify-center py-16 text-slate-400">
+            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
+            <span className="text-sm">Loading review queue…</span>
+          </div>
+        ) : pendingQueue.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 text-2xl">
+              ✓
+            </div>
+            <h3 className="text-base font-semibold text-slate-900">Review Queue Clear</h3>
+            <p className="text-xs text-slate-500">No pending recommendations require technical review at this time.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {pendingQueue.map((rec) => {
+              const primaryRs = rec.recommendationStandards?.find((rs) => rs.isPrimary)
+                || rec.recommendationStandards?.[0];
+              const std = primaryRs?.standard || {};
+              return (
+                <button
+                  key={rec.id}
+                  type="button"
+                  onClick={() => navigate(`/review/${rec.id}`)}
+                  className="w-full text-left bg-white rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-sm p-5 transition-all group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-800">
+                        {rec.requirementText || rec.requirement || "Procurement Requirement"}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="font-mono text-xs font-bold text-blue-800">
+                          {std.standardNumber || "—"}
+                        </span>
+                        {std.title && (
+                          <span className="text-xs text-slate-500 line-clamp-1">
+                            {std.title.slice(0, 55)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      <span className="text-[10px] font-mono font-bold text-slate-400">
+                        {rec.id?.slice(0, 8)}…
+                      </span>
+                      {rec.confidence && (
+                        <span className="text-xs font-semibold text-slate-600">{rec.confidence}% match</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => navigate("/history")}
+            className="text-xs text-blue-700 hover:text-blue-900 font-medium transition-colors"
+          >
+            ← View all records in History
           </button>
         </div>
       </div>
@@ -529,7 +666,7 @@ export const Review = () => {
 
           {/* Related Standards Quick Review */}
           <RelatedStandardsReview
-            relatedStandards={MOCK_RELATED_STANDARDS_REVIEW}
+            relatedStandards={relatedStandards}
             onOpenEvidence={handleOpenEvidence}
           />
 
@@ -542,7 +679,7 @@ export const Review = () => {
         {/* Right Column: Reviewer Info, Decision Controls, Audit Log */}
         <div className="space-y-6">
           {/* Reviewer Meta Card */}
-          <ReviewerCard reviewer={MOCK_REVIEWER} />
+          <ReviewerCard reviewer={activeReviewer} />
 
           {/* Decision Panel */}
           <ReviewDecisionPanel
