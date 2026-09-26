@@ -4,7 +4,13 @@
  * Fails closed in production if critical security secrets are missing or weak.
  */
 import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const NODE_ENV = process.env.NODE_ENV || "development";
 const isProduction = NODE_ENV === "production";
@@ -38,6 +44,7 @@ export const env = {
   NODE_ENV,
   isProduction,
   isTest,
+  APP_VERSION: process.env.APP_VERSION || "1.0.0-mvp",
   PORT: parseInt(process.env.PORT || "5001", 10),
   DATABASE_URL: process.env.DATABASE_URL,
   AUTH_SECRET: authSecret,
@@ -53,6 +60,34 @@ export const env = {
   // Token Durations
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY || "1h",
   SESSION_EXPIRY_DAYS: parseInt(process.env.SESSION_EXPIRY_DAYS || "7", 10),
+
+  // Storage Settings
+  UPLOAD_DIR: process.env.UPLOAD_DIR || path.resolve(__dirname, "../../uploads"),
+  MAX_UPLOAD_SIZE_MB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || "25", 10),
+
+  // AI & External Service Providers
+  EMBEDDING_PROVIDER: process.env.EMBEDDING_PROVIDER || "local",
+  EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
+  EMBEDDING_API_KEY: process.env.EMBEDDING_API_KEY || "",
+
+  LLM_PROVIDER: process.env.LLM_PROVIDER || "mock",
+  LLM_MODEL: process.env.LLM_MODEL || "gpt-4o-mini",
+  LLM_API_KEY: process.env.LLM_API_KEY || "",
+
+  TRANSLATION_PROVIDER: process.env.TRANSLATION_PROVIDER || "local",
+  TRANSLATION_MODEL: process.env.TRANSLATION_MODEL || "bhashini",
+  TRANSLATION_API_KEY: process.env.TRANSLATION_API_KEY || "",
+
+  OCR_ENABLED: process.env.OCR_ENABLED !== "false",
+
+  // Retrieval & Algorithm Limits
+  VECTOR_CANDIDATE_LIMIT: parseInt(process.env.VECTOR_CANDIDATE_LIMIT || "20", 10),
+  LEXICAL_CANDIDATE_LIMIT: parseInt(process.env.LEXICAL_CANDIDATE_LIMIT || "30", 10),
+
+  // Operational & Resource Limits
+  LOG_LEVEL: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
+  REQUEST_BODY_LIMIT: process.env.REQUEST_BODY_LIMIT || "10mb",
+  DOCUMENT_PROCESSING_TIMEOUT: parseInt(process.env.DOCUMENT_PROCESSING_TIMEOUT || "60000", 10),
 
   // Rate Limiting Config
   RATE_LIMIT_AUTH_MAX: parseInt(process.env.RATE_LIMIT_AUTH_MAX || "10", 10),
