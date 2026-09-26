@@ -1,19 +1,57 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FileCheck,
   ShieldCheck,
   AlertCircle,
   Bookmark,
-  TrendingUp,
 } from "lucide-react";
 import { DASHBOARD_STATS } from "../../data/mockData";
+import { getRecommendations } from "../../services/api";
+import { getStandards } from "../../services/api";
 import { cn } from "../../lib/utils";
 
-export const StatsCards = ({ stats = DASHBOARD_STATS }) => {
+export const StatsCards = ({ stats: propStats }) => {
+  const [liveStats, setLiveStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchStats() {
+      try {
+        // Fetch recommendation statistics from live API
+        const recData = await getRecommendations({ limit: 1 });
+        const stdData = await getStandards({ status: "CURRENT" });
+
+        if (isMounted) {
+          const statistics = recData?.statistics || {};
+          const currentStdsCount = Array.isArray(stdData)
+            ? stdData.filter((s) => s.status === "CURRENT").length
+            : 0;
+
+          setLiveStats({
+            recommendations: statistics.total || DASHBOARD_STATS.recommendations,
+            verifiedStandards: currentStdsCount || DASHBOARD_STATS.verifiedStandards,
+            underReview: statistics.underReview || DASHBOARD_STATS.underReview,
+            saved: statistics.accepted || DASHBOARD_STATS.saved,
+          });
+        }
+      } catch {
+        // Fall back to mock data if API unavailable
+        if (isMounted) setLiveStats(null);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    fetchStats();
+    return () => { isMounted = false; };
+  }, []);
+
+  const stats = propStats || liveStats || DASHBOARD_STATS;
+
   const cards = [
     {
       label: "Recommendations",
-      value: stats.recommendations,
+      value: isLoading ? "—" : stats.recommendations,
       subtext: "Evaluated procurement requests",
       icon: FileCheck,
       color: "text-blue-700",
@@ -22,7 +60,7 @@ export const StatsCards = ({ stats = DASHBOARD_STATS }) => {
     },
     {
       label: "Verified Standards",
-      value: stats.verifiedStandards,
+      value: isLoading ? "—" : stats.verifiedStandards,
       subtext: "Active & currently in-force IS",
       icon: ShieldCheck,
       color: "text-emerald-700",
@@ -31,7 +69,7 @@ export const StatsCards = ({ stats = DASHBOARD_STATS }) => {
     },
     {
       label: "Under Review",
-      value: stats.underReview,
+      value: isLoading ? "—" : stats.underReview,
       subtext: "Amendments & committee reviews",
       icon: AlertCircle,
       color: "text-amber-700",
@@ -39,9 +77,9 @@ export const StatsCards = ({ stats = DASHBOARD_STATS }) => {
       indicatorColor: "bg-amber-600",
     },
     {
-      label: "Saved",
-      value: stats.saved,
-      subtext: "Bookmarked tender clauses",
+      label: "Accepted",
+      value: isLoading ? "—" : stats.saved,
+      subtext: "Approved procurement standards",
       icon: Bookmark,
       color: "text-slate-700",
       bg: "bg-slate-100/70 border-slate-200/60",
@@ -56,7 +94,7 @@ export const StatsCards = ({ stats = DASHBOARD_STATS }) => {
           Executive Summary
         </h3>
         <span className="text-[11px] font-medium text-slate-400">
-          Demo Indicators • Q3 2026
+          {liveStats ? "Live Data • PostgreSQL" : "Demo Indicators • Q3 2026"}
         </span>
       </div>
 
@@ -83,7 +121,12 @@ export const StatsCards = ({ stats = DASHBOARD_STATS }) => {
               </div>
 
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-sans">
+                <span
+                  className={cn(
+                    "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-sans",
+                    isLoading && "animate-pulse text-slate-300"
+                  )}
+                >
                   {card.value}
                 </span>
               </div>
