@@ -1,0 +1,14 @@
+{
+  "id": "elec-04",
+  "requirement": "General electrical safety requirements for commercial kitchen induction cooking appliances",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Commercial Induction Cooking Appliance",
+    "application": "Kitchen Appliance Safety"
+  },
+  "expectedStandardIds": ["IS 302 (Part 1):2024"],
+  "acceptableStandardIds": ["IS 302"],
+  "notes": "Safety requirements for household and commercial electrical appliances.",
+  "source": "Kitchen Modernization Project"
+}

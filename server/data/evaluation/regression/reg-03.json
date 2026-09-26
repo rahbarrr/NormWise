@@ -1,0 +1,14 @@
+{
+  "id": "reg-03",
+  "requirement": "Stand-alone solar photovoltaic DC water pumping system with controller for agricultural borewell irrigation",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Solar Water Pumping System",
+    "application": "Agricultural Irrigation"
+  },
+  "expectedStandardIds": ["IS 17018:2018"],
+  "acceptableStandardIds": ["IS 17018"],
+  "notes": "Tests dataset gap detection: standard IS 17018 is deliberately absent from dataset, engine should report DATASET_GAP.",
+  "source": "Dataset Completeness Audit"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "elec-01",
+  "requirement": "6 Ampere 240 V AC flush type switches for domestic and fixed electrical installations conforming to IS 3854",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Flush Switch",
+    "capacity": "6 Ampere",
+    "application": "Domestic Fixed Installation"
+  },
+  "expectedStandardIds": ["IS 3854:1997"],
+  "acceptableStandardIds": ["IS 3854"],
+  "notes": "Verified domestic electrical switch specification.",
+  "source": "CPWD Electrical Works Specification"
+}

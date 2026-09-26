@@ -1,0 +1,14 @@
+{
+  "id": "pipe-03",
+  "requirement": "Mild steel tubular pipe fittings specified under historical IS 1239 Part 2 1992",
+  "language": "en",
+  "evaluationType": "CURRENTNESS",
+  "expectedAttributes": {
+    "product": "Steel Pipe Fitting",
+    "material": "Mild Steel"
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": ["IS 1239 (Part 2):1992"],
+  "notes": "Tests WITHDRAWN standard safety rule: IS 1239 Part 2 is withdrawn and cannot be primary citation.",
+  "source": "Standards Currentness Benchmark"
+}

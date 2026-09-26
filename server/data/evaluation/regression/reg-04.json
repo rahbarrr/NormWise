@@ -1,0 +1,13 @@
+{
+  "id": "reg-04",
+  "requirement": "Commercial heating equipment for public infrastructure facility",
+  "language": "en",
+  "evaluationType": "CLARIFICATION",
+  "expectedAttributes": {
+    "product": null
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": [],
+  "notes": "Tests that underspecified heating equipment triggers clarification questions rather than guessing.",
+  "source": "Clarification Guardrail"
+}

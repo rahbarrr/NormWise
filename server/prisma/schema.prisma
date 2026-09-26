@@ -538,4 +538,57 @@ model StandardEmbedding {
   @@map("standard_embeddings")
 }
 
+model EvaluationRun {
+  id             String             @id @default(uuid())
+  name           String
+  engineVersion  String             @default("hybrid-v1")
+  datasetVersion String             @default("2026.09")
+  totalCases     Int                @default(0)
+  completedCases Int                @default(0)
+  failedCases    Int                @default(0)
+  metrics        Json?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime           @default(now())
+
+  results        EvaluationResult[]
+
+  @@map("evaluation_runs")
+}
+
+model EvaluationResult {
+  id                    String        @id @default(uuid())
+  evaluationRunId       String
+  caseId                String
+  status                String        @default("SUCCESS")
+  evaluationType        String        @default("STANDARD_RETRIEVAL")
+  requirement           String        @db.Text
+  language              String        @default("EN")
+  expectedStandardIds   Json          @default("[]")
+  retrievedStandardIds  Json          @default("[]")
+  topStandardId         String?
+  topMatchScore         Float?
+  rankOfExpected        Int?
+  retrievalMethod       Json?
+  clarificationExpected Boolean       @default(false)
+  clarificationActual   Boolean       @default(false)
+  evidenceAvailable     Boolean       @default(false)
+  errorCategory         String?
+  failureReason         String?       @db.Text
+  extractedAttributes   Json?
+  expectedAttributes    Json?
+  attributeMatches      Json?
+  processingTimeMs      Int?
+  notes                 String?       @db.Text
+  createdAt             DateTime      @default(now())
+
+  evaluationRun         EvaluationRun @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationRunId])
+  @@index([caseId])
+  @@index([status])
+  @@index([errorCategory])
+  @@map("evaluation_results")
+}
+
 

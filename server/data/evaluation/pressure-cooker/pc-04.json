@@ -1,0 +1,13 @@
+{
+  "id": "pc-04",
+  "requirement": "Cooking pots and heating vessels for general canteen usage",
+  "language": "en",
+  "evaluationType": "CLARIFICATION",
+  "expectedAttributes": {
+    "product": null
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": [],
+  "notes": "Intentionally underspecified: product category ambiguous, must trigger CLARIFICATION_REQUIRED.",
+  "source": "Clarification Benchmark"
+}

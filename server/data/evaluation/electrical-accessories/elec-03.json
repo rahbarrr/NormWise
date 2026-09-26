@@ -1,0 +1,15 @@
+{
+  "id": "elec-03",
+  "requirement": "Electric ceiling fan 1200 mm sweep with electronic regulator for government school classrooms",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Ceiling Fan",
+    "capacity": "1200 mm",
+    "application": "Classroom"
+  },
+  "expectedStandardIds": ["IS 374:2019"],
+  "acceptableStandardIds": ["IS 374"],
+  "notes": "Verified against electric ceiling fans standard.",
+  "source": "Education Dept Infrastructure Tender"
+}

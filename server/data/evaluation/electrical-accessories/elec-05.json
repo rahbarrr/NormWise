@@ -1,0 +1,14 @@
+{
+  "id": "elec-05",
+  "requirement": "Hand-embroidered antique Kashmiri pashmina wool shawl with natural saffron dye",
+  "language": "en",
+  "evaluationType": "NO_MATCH",
+  "expectedAttributes": {
+    "product": "Handmade Shawl",
+    "material": "Wool"
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": [],
+  "notes": "Non-existent product category in technical engineering database; must return zero confidence or NO_MATCH.",
+  "source": "Out-of-domain negative test"
+}

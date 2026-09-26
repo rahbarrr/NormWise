@@ -1,0 +1,13 @@
+{
+  "id": "led-04",
+  "requirement": "Energy saving lights and illumination fittings for campus",
+  "language": "en",
+  "evaluationType": "CLARIFICATION",
+  "expectedAttributes": {
+    "product": null
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": [],
+  "notes": "Ambiguous illumination requirement without lamp type, driver or fixture rating.",
+  "source": "Clarification Benchmark"
+}

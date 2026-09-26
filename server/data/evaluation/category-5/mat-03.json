@@ -1,0 +1,15 @@
+{
+  "id": "mat-03",
+  "requirement": "Low nickel austenitic stainless steel sheet and strip for domestic utensils conforming to IS 15997",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Low Nickel Austenitic Stainless Steel",
+    "material": "Low Nickel Stainless Steel",
+    "application": "Domestic Utensils"
+  },
+  "expectedStandardIds": ["IS 15997:2012"],
+  "acceptableStandardIds": ["IS 15997"],
+  "notes": "Verified against low nickel stainless steel standard.",
+  "source": "BIS Demonstration Catalog"
+}

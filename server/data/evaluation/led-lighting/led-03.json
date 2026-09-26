@@ -1,0 +1,14 @@
+{
+  "id": "led-03",
+  "requirement": "AC supplied electronic controlgear and drivers for LED modules",
+  "language": "en",
+  "evaluationType": "RELATED_STANDARD",
+  "expectedAttributes": {
+    "product": "LED Controlgear",
+    "application": "LED Driver"
+  },
+  "expectedStandardIds": ["IS 16103 (Part 1):2012"],
+  "acceptableStandardIds": ["IS 16103"],
+  "notes": "Allied driver component standard to IS 16102 and IS 10322.",
+  "source": "BIS Demonstration Catalog"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "pc-05",
+  "requirement": "Domestic aluminium pressure cooker with mandatory ISI certification under QCO",
+  "language": "en",
+  "evaluationType": "COMPLIANCE",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Aluminium",
+    "application": "Domestic"
+  },
+  "expectedStandardIds": ["IS 2347:2023"],
+  "acceptableStandardIds": ["IS 2347"],
+  "notes": "Tests mandatory QCO certification detection and compliance rule linkage.",
+  "source": "BIS QCO Schedule"
+}

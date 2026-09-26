@@ -1,0 +1,14 @@
+{
+  "id": "pc-03",
+  "requirement": "Pressure cookers manufactured to IS 2347:2014 specification for government hostel pantry",
+  "language": "en",
+  "evaluationType": "CURRENTNESS",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "application": "Hostel Pantry"
+  },
+  "expectedStandardIds": ["IS 2347:2023"],
+  "acceptableStandardIds": ["IS 2347:2014"],
+  "notes": "Tests superseded standard handling: IS 2347:2014 must be flagged and successor IS 2347:2023 recommended.",
+  "source": "Standards Transition Audit"
+}

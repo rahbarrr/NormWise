@@ -1,0 +1,15 @@
+{
+  "id": "mat-01",
+  "requirement": "Stainless steel plates and strips AISI grade 304 for general engineering fabrication conforming to IS 6911",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Stainless Steel Plate and Strip",
+    "material": "Stainless Steel AISI 304",
+    "application": "General Engineering Fabrication"
+  },
+  "expectedStandardIds": ["IS 6911:2017"],
+  "acceptableStandardIds": ["IS 6911"],
+  "notes": "Verified against stainless steel plate and sheet specification.",
+  "source": "BIS Demonstration Catalog"
+}

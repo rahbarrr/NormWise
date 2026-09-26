@@ -1,0 +1,13 @@
+{
+  "id": "pipe-04",
+  "requirement": "General supply of pipes and conduit channels for township infrastructure",
+  "language": "en",
+  "evaluationType": "CLARIFICATION",
+  "expectedAttributes": {
+    "product": null
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": [],
+  "notes": "Ambiguous requirement lacking material (PVC, HDPE, steel, clay) and pressure rating.",
+  "source": "Clarification Benchmark"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "reg-02",
+  "requirement": "தெரு விளக்குகளுக்கு 60 W 230 V IP65 எல்இடி லுமினியர் IS 10322",
+  "language": "ta",
+  "evaluationType": "MULTILINGUAL",
+  "expectedAttributes": {
+    "product": "LED Street Light Luminaire",
+    "capacity": "60 Watt"
+  },
+  "expectedStandardIds": ["IS 10322 (Part 5/Sec 3):2012"],
+  "acceptableStandardIds": ["IS 10322"],
+  "notes": "Multilingual Tamil regression test ensuring protected IS number and LED lighting mapping.",
+  "source": "Multilingual Benchmark"
+}

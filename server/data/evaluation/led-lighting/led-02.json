@@ -1,0 +1,15 @@
+{
+  "id": "led-02",
+  "requirement": "Self-ballasted LED lamps 9W B22 base for general lighting services in government offices",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "LED Lamp",
+    "capacity": "9 Watt",
+    "application": "Office Lighting"
+  },
+  "expectedStandardIds": ["IS 16102 (Part 1):2012"],
+  "acceptableStandardIds": ["IS 16102"],
+  "notes": "Safety requirements for self-ballasted LED lamps.",
+  "source": "Government e-Marketplace Specification"
+}

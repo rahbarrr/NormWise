@@ -1,0 +1,15 @@
+{
+  "id": "mat-02",
+  "requirement": "Stainless steel sheets and strips specifically for manufacturing kitchen utensils conforming to IS 5522",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Stainless Steel Utensil Sheet",
+    "material": "Stainless Steel",
+    "application": "Utensil Manufacturing"
+  },
+  "expectedStandardIds": ["IS 5522:2014"],
+  "acceptableStandardIds": ["IS 5522"],
+  "notes": "Verified against utensil grade stainless steel standard.",
+  "source": "Kitchen Utensil Tender"
+}

@@ -18,6 +18,7 @@ import {
   Network,
   Database,
   Languages,
+  BarChart3,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
 import { cn } from "../../lib/utils";
@@ -82,6 +83,13 @@ const referenceNavItems = [
     icon: Languages,
     badge: "Indic",
     badgeVariant: "emerald",
+  },
+  {
+    name: "Evaluation Benchmark",
+    path: "/admin/evaluation",
+    icon: BarChart3,
+    badge: "Eval",
+    badgeVariant: "blue",
   },
   {
     name: "Human Review",

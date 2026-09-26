@@ -1,0 +1,16 @@
+{
+  "id": "pc-01",
+  "requirement": "Supply of 5 litre stainless steel pressure cooker for institutional kitchen use conforming to IS 2347",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Stainless Steel",
+    "application": "Institutional Kitchen",
+    "capacity": "5 Litre"
+  },
+  "expectedStandardIds": ["IS 2347:2023"],
+  "acceptableStandardIds": ["IS 2347"],
+  "notes": "Primary verified standard retrieval for pressure cookers.",
+  "source": "BIS Demonstration Catalog"
+}

@@ -11,7 +11,31 @@ import crypto from "crypto";
 import prisma from "../config/db.js";
 
 export function isEmbeddingConfigured() {
-  return Boolean(process.env.EMBEDDING_API_KEY);
+  const provider = (process.env.EMBEDDING_PROVIDER || "").toLowerCase();
+  return provider === "mock" || Boolean(process.env.EMBEDDING_API_KEY);
+}
+
+/**
+ * Generates a deterministic mock embedding vector of given dimensions (default 1536)
+ * based on SHA-256 content hashing. Produces identical unit-norm vectors for identical text.
+ */
+export function generateDeterministicMockEmbedding(text, dimensions = 1536) {
+  if (!text || typeof text !== "string") return null;
+  const hash = crypto.createHash("sha256").update(text.trim().toLowerCase()).digest();
+  const vector = new Float32Array(dimensions);
+  let norm = 0;
+  for (let i = 0; i < dimensions; i++) {
+    const byte = hash[i % hash.length];
+    const val = (((byte + i * 31) % 1000) / 500) - 1.0;
+    vector[i] = val;
+    norm += val * val;
+  }
+  norm = Math.sqrt(norm) || 1;
+  const result = new Array(dimensions);
+  for (let i = 0; i < dimensions; i++) {
+    result[i] = Number((vector[i] / norm).toFixed(6));
+  }
+  return result;
 }
 
 /**
@@ -44,9 +68,14 @@ export async function generateEmbedding(text) {
     return null;
   }
 
-  const apiKey = process.env.EMBEDDING_API_KEY;
   const provider = (process.env.EMBEDDING_PROVIDER || "openai").toLowerCase();
+  const apiKey = process.env.EMBEDDING_API_KEY;
   const model = process.env.EMBEDDING_MODEL || (provider === "gemini" ? "text-embedding-004" : "text-embedding-3-small");
+
+  // Section 28: Deterministic Mock Embedding Provider
+  if (provider === "mock") {
+    return generateDeterministicMockEmbedding(text);
+  }
 
   if (!apiKey) {
     // Controlled non-fatal state: embeddings are not configured

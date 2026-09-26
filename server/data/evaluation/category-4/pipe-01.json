@@ -1,0 +1,15 @@
+{
+  "id": "pipe-01",
+  "requirement": "High density polyethylene HDPE pipes PE-100 grade PN 10 for potable water supply",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "HDPE Pipe",
+    "material": "High Density Polyethylene",
+    "application": "Potable Water Supply"
+  },
+  "expectedStandardIds": ["IS 4984:2016"],
+  "acceptableStandardIds": ["IS 4984"],
+  "notes": "Verified against HDPE pipes for water supply standard.",
+  "source": "Jal Jeevan Mission Specification"
+}

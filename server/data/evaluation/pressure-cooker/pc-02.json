@@ -1,0 +1,15 @@
+{
+  "id": "pc-02",
+  "requirement": "Food-grade rubber sealing gaskets for domestic pressure cooker replacement",
+  "language": "en",
+  "evaluationType": "RELATED_STANDARD",
+  "expectedAttributes": {
+    "product": "Pressure Cooker Gasket",
+    "material": "Rubber",
+    "application": "Domestic Kitchen"
+  },
+  "expectedStandardIds": ["IS 7466:1994"],
+  "acceptableStandardIds": ["IS 7466"],
+  "notes": "Component standard related to IS 2347 pressure cookers.",
+  "source": "BIS Demonstration Catalog"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "mat-04",
+  "requirement": "Stainless steel 304 grade cold rolled strips with 2 mm thickness for fabrication",
+  "language": "en",
+  "evaluationType": "ATTRIBUTE_EXTRACTION",
+  "expectedAttributes": {
+    "material": "Stainless Steel",
+    "capacity": "2 mm",
+    "application": "Fabrication"
+  },
+  "expectedStandardIds": [],
+  "acceptableStandardIds": ["IS 6911:2017"],
+  "notes": "Attribute extraction test for material, thickness dimension, and fabrication application.",
+  "source": "Attribute Extraction Benchmark"
+}

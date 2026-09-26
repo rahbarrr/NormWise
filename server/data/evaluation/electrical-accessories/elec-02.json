@@ -1,0 +1,15 @@
+{
+  "id": "elec-02",
+  "requirement": "16 Ampere 250 V rated 3-pin plugs and shuttered socket outlets for residential power circuits",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "Plug and Socket Outlet",
+    "capacity": "16 Ampere",
+    "application": "Residential Power Circuit"
+  },
+  "expectedStandardIds": ["IS 1293:2019"],
+  "acceptableStandardIds": ["IS 1293"],
+  "notes": "Verified against IS 1293 plugs and sockets standard.",
+  "source": "CPWD Electrical Works Specification"
+}

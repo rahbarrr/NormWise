@@ -539,4 +539,48 @@ export async function deleteTerminologyApi(id) {
   return res.data;
 }
 
+// ----------------------------------------------------
+// Evaluation & Benchmarking API (Phase 17)
+// ----------------------------------------------------
+
+export async function triggerEvaluationRunApi(payload = {}) {
+  const res = await apiRequest("/admin/evaluation/run", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return res;
+}
+
+export async function getEvaluationRunsApi() {
+  const res = await apiRequest("/admin/evaluation/runs");
+  return res.runs || [];
+}
+
+export async function getEvaluationRunDetailsApi(id) {
+  const res = await apiRequest(`/admin/evaluation/runs/${id}`);
+  return res.run;
+}
+
+export async function exportEvaluationReportApi(id, format = "json") {
+  if (format === "markdown" || format === "md") {
+    const res = await fetch(`/api/admin/evaluation/${id}/report?format=markdown`);
+    return await res.text();
+  }
+  const res = await apiRequest(`/admin/evaluation/${id}/report`);
+  return res;
+}
+
+export async function getAvailableCasesApi() {
+  const res = await apiRequest("/admin/evaluation/cases");
+  return res.cases || [];
+}
+
+export async function evaluateSingleCaseApi(casePayload) {
+  const res = await apiRequest("/admin/evaluation/case", {
+    method: "POST",
+    body: JSON.stringify(casePayload),
+  });
+  return res.result;
+}
+
 

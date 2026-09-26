@@ -1,0 +1,15 @@
+{
+  "id": "reg-01",
+  "requirement": "स्टेनलेस स्टील का 5 litre प्रेशर कुकर घरेलू उपयोग के लिए IS 2347:2023",
+  "language": "hi",
+  "evaluationType": "MULTILINGUAL",
+  "expectedAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Stainless Steel",
+    "capacity": "5 Litre"
+  },
+  "expectedStandardIds": ["IS 2347:2023"],
+  "acceptableStandardIds": ["IS 2347"],
+  "notes": "Multilingual Hindi regression test ensuring Indic script normalization maps to IS 2347.",
+  "source": "Multilingual Benchmark"
+}

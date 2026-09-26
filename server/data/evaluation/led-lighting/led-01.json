@@ -1,0 +1,16 @@
+{
+  "id": "led-01",
+  "requirement": "Supply of 120W outdoor LED street light luminaires with IP66 ingress protection for highway lighting",
+  "language": "en",
+  "evaluationType": "STANDARD_RETRIEVAL",
+  "expectedAttributes": {
+    "product": "LED Street Light Luminaire",
+    "capacity": "120 Watt",
+    "application": "Highway Lighting",
+    "technicalCharacteristics": ["IP66 Ingress Protection"]
+  },
+  "expectedStandardIds": ["IS 10322 (Part 5/Sec 3):2012"],
+  "acceptableStandardIds": ["IS 10322"],
+  "notes": "Verified against road and street lighting luminaire standard.",
+  "source": "Municipal Procurement Tender"
+}
