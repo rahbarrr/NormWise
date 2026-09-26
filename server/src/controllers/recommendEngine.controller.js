@@ -20,6 +20,9 @@ export const handleRecommend = async (req, res, next) => {
     if (!rawText || typeof rawText !== "string" || rawText.trim().length < 5) {
       return sendError(res, "Please provide a procurement requirement.", 400);
     }
+    if (rawText.trim().length > 10000) {
+      return sendError(res, "Requirement text exceeds maximum allowed length of 10,000 characters.", 400);
+    }
 
     const result = await recommend(rawText, {
       userId,

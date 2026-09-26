@@ -33,6 +33,13 @@ export async function recommend(requirementText, options = {}) {
     error.statusCode = 400;
     throw error;
   }
+  if (cleanText.length > RECOMMENDATION_THRESHOLDS.MAX_REQUIREMENT_LENGTH) {
+    const error = new Error(
+      `Requirement text exceeds maximum allowed length of ${RECOMMENDATION_THRESHOLDS.MAX_REQUIREMENT_LENGTH} characters.`
+    );
+    error.statusCode = 400;
+    throw error;
+  }
 
   // 2. Multilingual Normalization & Structured Attribute Extraction (Phase 16)
   const multilingual = await normalizeRequirementMultilingual(cleanText, options.language);
