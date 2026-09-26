@@ -6,6 +6,10 @@ async function main() {
   console.log("Seeding NormWise demonstration database with rich standards metadata...");
 
   // Clean existing tables in proper foreign-key order
+  await prisma.complianceEvaluation.deleteMany();
+  await prisma.complianceEvidence.deleteMany();
+  await prisma.complianceCondition.deleteMany();
+  await prisma.complianceRule.deleteMany();
   await prisma.reviewChecklist.deleteMany();
   await prisma.review.deleteMany();
   await prisma.auditEvent.deleteMany();
@@ -756,7 +760,150 @@ async function main() {
     },
   });
 
-  console.log("Database seeded successfully with standards, knowledge graph, and demonstration recommendations!");
+  // ====================================================
+  // 5. Seed Compliance & QCO Rules Engine (Phase 13)
+  // ====================================================
+  console.log("Seeding Phase 13 Compliance & QCO demonstration rules...");
+
+  // Rule 1: Pressure Cooker QCO Demo Rule
+  const ruleCooker = await prisma.complianceRule.create({
+    data: {
+      name: "Domestic Pressure Cooker Quality Control Order (Demo)",
+      description: "Demo regulatory rule indicating potential Scheme-I / ISI mark compliance requirement for pressure cookers under Domestic Pressure Cooker QCO.",
+      standardId: stdCookerCurrent.id,
+      productCategory: "Kitchen Equipment & Pressure Cookers",
+      applicability: "Applies to pressure cookers for domestic/institutional catering manufactured or imported for Indian procurement.",
+      outcome: "POTENTIALLY_APPLICABLE",
+      authority: "BIS / Department of Consumer Affairs (Demo Dataset)",
+      sourceReference: "Demo Gazette Notification Ref: S.O. 1234(E) — Domestic Pressure Cookers (Quality Control) Order (Demo Data)",
+      effectiveFrom: new Date("2021-02-01"),
+      effectiveTo: null,
+      status: "ACTIVE",
+      notes: "Demo regulatory data — verify against current authoritative regulatory source before procurement use.",
+      isDemo: true,
+      conditions: {
+        create: [
+          {
+            field: "product",
+            operator: "CONTAINS",
+            value: "pressure cooker",
+          },
+          {
+            field: "standardNumber",
+            operator: "EQUALS",
+            value: "IS 2347:2023",
+          },
+        ],
+      },
+      evidences: {
+        create: [
+          {
+            sourceTitle: "BIS Scheme-I Product Certification Directory (Demo)",
+            sourceReference: "BIS Conformity Assessment Scheme-I (ISI Mark) Schedule (Demo Sample)",
+            effectiveDate: new Date("2021-02-01"),
+            notes: "Demonstration evidence reference for testing compliance engine linkages.",
+          },
+        ],
+      },
+    },
+  });
+
+  // Rule 2: LED Street Lighting Luminaire QCO Demo Rule
+  const ruleLED = await prisma.complianceRule.create({
+    data: {
+      name: "LED Luminaires Safety & Compulsory Registration (Demo)",
+      description: "Demo regulatory rule evaluating compulsory registration / safety requirements for road & street lighting luminaires.",
+      standardId: stdLED.id,
+      productCategory: "Outdoor Luminaires & Street Lighting",
+      applicability: "Applies to fixed roadway lighting luminaires operating on AC supply voltages up to 1000V.",
+      outcome: "POTENTIALLY_APPLICABLE",
+      authority: "MeitY / BIS (Demo Dataset)",
+      sourceReference: "Demo Notification: Electronics and Information Technology Goods (Compulsory Registration) Order (Demo Data)",
+      effectiveFrom: new Date("2016-09-01"),
+      effectiveTo: null,
+      status: "ACTIVE",
+      notes: "Demo regulatory data — verify against current authoritative regulatory source before procurement use.",
+      isDemo: true,
+      conditions: {
+        create: [
+          {
+            field: "product",
+            operator: "CONTAINS",
+            value: "led",
+          },
+          {
+            field: "standardNumber",
+            operator: "CONTAINS",
+            value: "10322",
+          },
+        ],
+      },
+    },
+  });
+
+  // Rule 3: Heritage Woodwork Exemption Demo Rule
+  const ruleHeritage = await prisma.complianceRule.create({
+    data: {
+      name: "Custom Handcrafted Heritage Artifact Exemption (Demo)",
+      description: "Demo rule identifying that non-industrial bespoke handcrafted heritage items typically do not have mandatory industrial QCO coverage.",
+      productCategory: "Handcrafted Heritage & Artifacts",
+      applicability: "Applies to bespoke non-standardized artisanal woodwork and museum restoration artifacts.",
+      outcome: "NOT_IDENTIFIED",
+      authority: "Ministry of Culture / Handicrafts Board (Demo Dataset)",
+      sourceReference: "Demo Handicrafts Advisory (Demo Data)",
+      effectiveFrom: new Date("2020-01-01"),
+      effectiveTo: null,
+      status: "ACTIVE",
+      notes: "Demo regulatory data — verify against current authoritative regulatory source before procurement use.",
+      isDemo: true,
+      conditions: {
+        create: [
+          {
+            field: "product",
+            operator: "CONTAINS",
+            value: "handcrafted",
+          },
+        ],
+      },
+    },
+  });
+
+  // Seed compliance evaluation on demo rec1 (Pressure Cooker)
+  await prisma.complianceEvaluation.create({
+    data: {
+      recommendationId: rec1.id,
+      complianceRuleId: ruleCooker.id,
+      outcome: "POTENTIALLY_APPLICABLE",
+      matchedConditions: [
+        {
+          field: "product",
+          operator: "CONTAINS",
+          expectedValue: "pressure cooker",
+          actualValue: rec1.product,
+        },
+        {
+          field: "standardNumber",
+          operator: "EQUALS",
+          expectedValue: "IS 2347:2023",
+          actualValue: "IS 2347:2023",
+        },
+      ],
+      explanation: "Potentially applicable because requirement matched active demo rule \"Domestic Pressure Cooker Quality Control Order (Demo)\" based on product category in current dataset.",
+      requiresHumanReview: true,
+      missingAttributes: [],
+    },
+  });
+
+  await prisma.auditEvent.create({
+    data: {
+      recommendationId: rec1.id,
+      actorId: officer.id,
+      action: "COMPLIANCE_EVALUATED",
+      details: `Compliance rules evaluated. Outcome: POTENTIALLY_APPLICABLE. Matched rule: ${ruleCooker.name}. Human review required: true.`,
+    },
+  });
+
+  console.log("Database seeded successfully with standards, knowledge graph, recommendations, and compliance rules!");
 }
 
 main()

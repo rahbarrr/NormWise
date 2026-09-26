@@ -3,6 +3,7 @@ import * as recController from "../controllers/recommendations.controller.js";
 import * as reviewController from "../controllers/review.controller.js";
 import * as evidenceController from "../controllers/evidence.controller.js";
 import * as auditController from "../controllers/audit.controller.js";
+import { complianceController } from "../controllers/compliance.controller.js";
 import { validate } from "../middleware/validate.middleware.js";
 
 const router = Router();
@@ -63,5 +64,8 @@ router.post(
 
 // Audit Trail Sub-routes
 router.get("/:id/audit", auditController.getAuditEventsByRecommendationId);
+
+// Compliance Sub-routes
+router.get("/:id/compliance", complianceController.getRecommendationCompliance);
 
 export default router;

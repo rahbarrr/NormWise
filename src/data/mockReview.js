@@ -80,6 +80,15 @@ export const MOCK_CHECKLIST = [
     completed: false,
     evidenceId: "EV-001",
   },
+  {
+    id: "compliance_verified",
+    label: "Certification / regulatory applicability verified",
+    description:
+      "Statutory compliance rules, QCO Orders, and conformity assessment schemes verified by human reviewer.",
+    completed: false,
+    evidenceId: "EV-003",
+    complianceDecision: null,
+  },
 ];
 
 export const MOCK_INITIAL_AUDIT_EVENTS = [

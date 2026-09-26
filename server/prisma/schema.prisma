@@ -67,6 +67,28 @@ enum ReviewStatus {
   NOT_APPLICABLE
 }
 
+enum RuleStatus {
+  ACTIVE
+  INACTIVE
+  UNKNOWN
+}
+
+enum ComplianceOutcome {
+  POTENTIALLY_APPLICABLE
+  NOT_IDENTIFIED
+  REQUIRES_REVIEW
+  INSUFFICIENT_EVIDENCE
+  UNKNOWN
+}
+
+enum ComplianceConditionOperator {
+  EQUALS
+  CONTAINS
+  MATCHES
+  IN
+  NOT_EQUALS
+}
+
 enum AuditAction {
   RECOMMENDATION_CREATED
   EVIDENCE_REVIEWED
@@ -81,6 +103,8 @@ enum AuditAction {
   REQUIREMENTS_EXTRACTED
   REQUIREMENTS_EDITED
   RECOMMENDATION_STARTED
+  COMPLIANCE_EVALUATED
+  COMPLIANCE_VERIFIED
 }
 
 enum ProcessingStatus {
@@ -134,6 +158,7 @@ model Standard {
   evidences               Evidence[]
   relatedStandards        RelatedStandard[]        @relation("StandardToRelated")
   referencedBy            RelatedStandard[]        @relation("RelatedToStandard")
+  complianceRules         ComplianceRule[]
 
   @@map("standards")
 }
@@ -176,6 +201,7 @@ model Recommendation {
   reviews                 Review[]
   documents               Document[]
   auditEvents             AuditEvent[]
+  complianceEvaluations   ComplianceEvaluation[]
 
   @@map("recommendations")
 }
@@ -206,9 +232,11 @@ model Evidence {
   status           String       @default("Available")
   createdAt        DateTime     @default(now())
 
-  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  standard       Standard?      @relation(fields: [standardId], references: [id], onDelete: SetNull)
-  relatedStandards RelatedStandard[]
+  recommendation        Recommendation         @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  standard              Standard?              @relation(fields: [standardId], references: [id], onDelete: SetNull)
+  relatedStandards      RelatedStandard[]
+  complianceEvidences   ComplianceEvidence[]
+  complianceEvaluations ComplianceEvaluation[]
 
   @@map("evidence")
 }
@@ -300,3 +328,78 @@ model Document {
 
   @@map("documents")
 }
+
+model ComplianceRule {
+  id              String            @id @default(uuid())
+  name            String
+  description     String?           @db.Text
+  standardId      String?
+  productCategory String?
+  applicability   String?
+  outcome         ComplianceOutcome @default(POTENTIALLY_APPLICABLE)
+  authority       String            @default("BIS / Regulatory Authority")
+  sourceReference String            @default("Gazette / QCO Notification Reference")
+  effectiveFrom   DateTime?
+  effectiveTo     DateTime?
+  status          RuleStatus        @default(ACTIVE)
+  notes           String?           @db.Text
+  isDemo          Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  standard    Standard?              @relation(fields: [standardId], references: [id], onDelete: SetNull)
+  conditions  ComplianceCondition[]
+  evidences   ComplianceEvidence[]
+  evaluations ComplianceEvaluation[]
+
+  @@map("compliance_rules")
+}
+
+model ComplianceCondition {
+  id               String                      @id @default(uuid())
+  complianceRuleId String
+  field            String
+  operator         ComplianceConditionOperator @default(CONTAINS)
+  value            String
+  createdAt        DateTime                    @default(now())
+
+  complianceRule ComplianceRule @relation(fields: [complianceRuleId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_conditions")
+}
+
+model ComplianceEvidence {
+  id               String    @id @default(uuid())
+  complianceRuleId String
+  evidenceId       String?
+  sourceTitle      String
+  sourceReference  String
+  effectiveDate    DateTime?
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now())
+
+  complianceRule ComplianceRule @relation(fields: [complianceRuleId], references: [id], onDelete: Cascade)
+  evidence       Evidence?      @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+
+  @@map("compliance_evidence")
+}
+
+model ComplianceEvaluation {
+  id                  String            @id @default(uuid())
+  recommendationId    String
+  complianceRuleId    String?
+  outcome             ComplianceOutcome @default(POTENTIALLY_APPLICABLE)
+  matchedConditions   Json?
+  explanation         String            @db.Text
+  evidenceId          String?
+  requiresHumanReview Boolean           @default(true)
+  missingAttributes   String[]          @default([])
+  evaluatedAt         DateTime          @default(now())
+
+  recommendation Recommendation  @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  complianceRule ComplianceRule? @relation(fields: [complianceRuleId], references: [id], onDelete: SetNull)
+  evidence       Evidence?       @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+
+  @@map("compliance_evaluations")
+}
+

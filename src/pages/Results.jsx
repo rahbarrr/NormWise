@@ -24,6 +24,12 @@ import {
   toggleSaveRecommendation,
 } from "../services/api";
 import { getRelatedStandards } from "../services/standardApi";
+import { ComplianceStatusCard } from "../components/results/ComplianceStatusCard";
+import { ComplianceDrawer } from "../components/compliance/ComplianceDrawer";
+import {
+  getRecommendationCompliance,
+  evaluateCompliance,
+} from "../services/complianceApi";
 
 export const Results = () => {
   const [searchParams] = useSearchParams();
@@ -48,6 +54,8 @@ export const Results = () => {
   const [isClauseModalOpen, setIsClauseModalOpen] = useState(false);
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [complianceData, setComplianceData] = useState(null);
+  const [isComplianceDrawerOpen, setIsComplianceDrawerOpen] = useState(false);
 
   // Interaction feedback states
   const [isSaved, setIsSaved] = useState(false);
@@ -96,6 +104,24 @@ export const Results = () => {
             ? relatedRes.relatedStandards
             : mappedAllied;
 
+          // Load compliance evaluation
+          const compRes = await getRecommendationCompliance(apiData.id).catch(() => null);
+          if (compRes) {
+            setComplianceData(compRes);
+          } else {
+            const freshComp = await evaluateCompliance({
+              recommendationId: apiData.id,
+              attributes: {
+                product: apiData.product || apiData.requirement || apiData.requirementText,
+                material: apiData.material,
+                capacity: apiData.capacity,
+                application: apiData.application,
+              },
+              standardNumber: recStdNumber,
+            }).catch(() => null);
+            if (freshComp) setComplianceData(freshComp);
+          }
+
           setResult({
             ...baseMock,
             id: apiData.id,
@@ -131,6 +157,19 @@ export const Results = () => {
         mock.alliedStandards = relatedRes.relatedStandards;
         mock.isDemoDataset = Boolean(relatedRes.isDemoDataset);
       }
+
+      // Evaluate compliance for fallback
+      const freshComp = await evaluateCompliance({
+        attributes: {
+          product: mock.attributes?.product || queryParam || "Pressure Cooker",
+          material: mock.attributes?.material,
+          capacity: mock.attributes?.capacity,
+          application: mock.attributes?.application,
+        },
+        standardNumber: fallbackStdNumber,
+      }).catch(() => null);
+      if (freshComp) setComplianceData(freshComp);
+
       setResult(mock);
     } catch (err) {
       console.error("Failed to load recommendation result:", err);
@@ -376,6 +415,17 @@ export const Results = () => {
         />
       </div>
 
+      {/* Certification & Compliance Rules Engine Check (Phase 13) */}
+      <ComplianceStatusCard
+        compliance={complianceData}
+        onOpenDrawer={() => setIsComplianceDrawerOpen(true)}
+        onEditRequirement={() =>
+          navigate("/recommend", {
+            state: { initialRequirement: result.requirement },
+          })
+        }
+      />
+
       {/* Allied Standards & Normative References */}
       <AlliedStandards
         alliedStandards={result.alliedStandards}
@@ -415,6 +465,19 @@ export const Results = () => {
         isOpen={isEvidenceDrawerOpen}
         onClose={() => setIsEvidenceDrawerOpen(false)}
         evidenceItem={activeEvidence}
+      />
+
+      {/* Compliance Details Drawer (Phase 13) */}
+      <ComplianceDrawer
+        isOpen={isComplianceDrawerOpen}
+        onClose={() => setIsComplianceDrawerOpen(false)}
+        compliance={complianceData}
+        onOpenEvidence={() => {
+          if (result.evidence && result.evidence.length > 0) {
+            setActiveEvidence(result.evidence[0]);
+            setIsEvidenceDrawerOpen(true);
+          }
+        }}
       />
 
       {/* Procurement Tender Clause Modal */}

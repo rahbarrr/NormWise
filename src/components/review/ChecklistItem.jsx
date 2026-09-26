@@ -65,6 +65,42 @@ export const ChecklistItem = ({
             {item.description}
           </p>
         )}
+
+        {/* Phase 13: Compliance Decision Selection */}
+        {item.id === "compliance_verified" && (
+          <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-slate-500 mr-1">
+              Reviewer Finding:
+            </span>
+            {[
+              { val: "Verified", color: "hover:bg-emerald-50 text-emerald-800 border-emerald-300" },
+              { val: "Requires clarification", color: "hover:bg-amber-50 text-amber-800 border-amber-300" },
+              { val: "Unable to verify", color: "hover:bg-slate-100 text-slate-700 border-slate-300" },
+              { val: "Not applicable", color: "hover:bg-blue-50 text-blue-800 border-blue-300" },
+            ].map((dec) => {
+              const isSelected = item.complianceDecision === dec.val;
+              return (
+                <button
+                  key={dec.val}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!item.completed) onToggle(item.id);
+                    item.complianceDecision = dec.val;
+                  }}
+                  className={cn(
+                    "text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors cursor-pointer",
+                    isSelected
+                      ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
+                      : cn("bg-white", dec.color)
+                  )}
+                >
+                  {dec.val}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { getRelatedStandards } from "./relatedStandardsService.js";
 import { getCertificationDetails } from "./certificationService.js";
 import { collectEvidenceForStandard } from "./evidenceService.js";
 import { generateGroundedExplanation } from "./explanationService.js";
+import { complianceRuleService } from "./complianceRuleService.js";
 import {
   RECOMMENDATION_THRESHOLDS,
   RETRIEVAL_LIMITS,
@@ -134,6 +135,19 @@ export async function recommend(requirementText, options = {}) {
     evidence,
   });
 
+  // 12b. Compliance & QCO Rules Engine Evaluation (Phase 13)
+  const compliance = await complianceRuleService.evaluateCompliance({
+    attributes: {
+      product: extracted.product || cleanText,
+      material: extracted.material,
+      capacity: extracted.capacity,
+      application: extracted.application,
+    },
+    standardId: topCandidate.standardId,
+    standardNumber: topCandidate.standardNumber,
+    standardStatus: topCandidate.status,
+  });
+
   // 13. Persist recommendation to PostgreSQL
   const defaultUser = await getOrCreateDefaultUser(options.userId);
 
@@ -217,6 +231,16 @@ export async function recommend(requirementText, options = {}) {
     },
   });
 
+  // 16. Persist Compliance Evaluation & Audit Event (Phase 13)
+  if (compliance) {
+    await complianceRuleService.persistEvaluation(
+      savedRec.id,
+      compliance.primaryRuleId || null,
+      compliance,
+      compliance.evidenceId || null
+    );
+  }
+
   console.log(`[RecommendationEngine] Completed recommendation ${savedRec.id} in ${Date.now() - startTime}ms. State: ${recommendationState}`);
 
   // Return structured result to frontend/API
@@ -250,6 +274,7 @@ export async function recommend(requirementText, options = {}) {
     relatedStandards,
     alliedStandards: relatedStandards,
     certification,
+    compliance,
     evidence,
     explanation,
   };
