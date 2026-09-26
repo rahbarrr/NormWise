@@ -181,6 +181,7 @@ model Standard {
   referencedBy            RelatedStandard[]        @relation("RelatedToStandard")
   complianceRules         ComplianceRule[]
   standardEmbedding       StandardEmbedding?
+  terms                   StandardTerm[]
 
   @@index([standardNumber])
   @@index([category])
@@ -225,6 +226,13 @@ model Recommendation {
   engineVersion            String?              @default("hybrid-v1")
   retrievalMethod          String?              @default("HYBRID")
   embeddingModel           String?
+  originalText             String?              @db.Text
+  detectedLanguage         String?              @default("EN")
+  originalLanguage         String?              @default("EN")
+  normalizedText           String?              @db.Text
+  translationText          String?              @db.Text
+  normalizationMethod      String?              @default("DETERMINISTIC")
+  translationMethod        String?
   createdAt                DateTime             @default(now())
   updatedAt                DateTime             @updatedAt
 
@@ -362,6 +370,9 @@ model Document {
   extractionMethod       String?
   textExtractionQuality  String?
   extractedRequirements  Json?
+  detectedLanguage       String?
+  originalLanguage       String?
+  languageConfidence     Float?
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
 
@@ -489,15 +500,26 @@ model ImportedStandardRecord {
 }
 
 model StandardTerm {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   term             String
   normalizedTerm   String
+  language         String    @default("EN")
+  termType         String    @default("PRODUCT")
+  source           String    @default("MANUAL_VERIFIED")
+  standardId       String?
+  isVerified       Boolean   @default(true)
   category         String?
   sourceStandardId String?
-  createdAt        DateTime @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  standard         Standard? @relation(fields: [standardId], references: [id], onDelete: SetNull)
 
   @@unique([normalizedTerm, category])
+  @@index([term])
   @@index([normalizedTerm])
+  @@index([language])
+  @@index([termType])
   @@map("standard_terms")
 }
 

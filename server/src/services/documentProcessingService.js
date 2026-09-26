@@ -6,6 +6,7 @@
 import prisma from "../config/db.js";
 import { extractText } from "./documentExtractionService.js";
 import { extractRequirementsFromDocumentText } from "./documentRequirementService.js";
+import { detectLanguage } from "./languageDetectionService.js";
 
 export async function processDocument(documentId) {
   const document = await prisma.document.findUnique({
@@ -30,7 +31,10 @@ export async function processDocument(documentId) {
     // 1-6. Extract text (PDF/DOCX/OCR fallback)
     const extractionResult = await extractText(document.storagePath, document.fileType);
 
-    // 7-8. Update Document with extracted text & quality
+    // Phase 16: Detect Language of extracted document text
+    const langDetection = detectLanguage(extractionResult.text || "");
+
+    // 7-8. Update Document with extracted text, quality, and detected language
     await prisma.document.update({
       where: { id: documentId },
       data: {
@@ -38,6 +42,9 @@ export async function processDocument(documentId) {
         extractedText: extractionResult.text || "",
         extractionMethod: extractionResult.extractionMethod || "PDF_TEXT",
         textExtractionQuality: extractionResult.quality || "MEDIUM",
+        detectedLanguage: langDetection.language,
+        originalLanguage: langDetection.language,
+        languageConfidence: langDetection.confidence,
         processingStatus: "TEXT_EXTRACTED",
       },
     });

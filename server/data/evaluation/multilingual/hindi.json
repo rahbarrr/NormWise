@@ -1,0 +1,31 @@
+[
+  {
+    "id": "HI-01",
+    "input": "स्टेनलेस स्टील का 5 litre प्रेशर कुकर घरेलू उपयोग के लिए IS 2347:2023",
+    "expectedLanguage": "HI",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "HI-02",
+    "input": "सड़क प्रकाश व्यवस्था के लिए 60 W 230 V IP65 एलईडी ल्यूमिनेयर IS 10322",
+    "expectedLanguage": "HI",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "HI-03",
+    "input": "कृषि सिंचाई के लिए 5 HP सबमर्सिबल पंप",
+    "expectedLanguage": "HI",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

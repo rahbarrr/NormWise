@@ -1,0 +1,31 @@
+[
+  {
+    "id": "TE-01",
+    "input": "గృహ వంట కోసం స్టెయిన్‌లెస్ స్టీల్ 5 litre ప్రెజర్ కుక్కర్ IS 2347:2023",
+    "expectedLanguage": "TE",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "TE-02",
+    "input": "వీధి దీపాల కోసం 60 W 230 V IP65 ఎల్ఈడీ లూమినైర్ IS 10322",
+    "expectedLanguage": "TE",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "TE-03",
+    "input": "వ్యవసాయ సాగునీటి కోసం 5 HP సబ్మర్సిబుల్ పంప్",
+    "expectedLanguage": "TE",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

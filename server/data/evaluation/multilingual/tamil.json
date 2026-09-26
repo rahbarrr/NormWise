@@ -1,0 +1,31 @@
+[
+  {
+    "id": "TA-01",
+    "input": "வீட்டு சமையலுக்கு ஸ்டெயின்லெஸ் ஸ்டீல் 5 litre பிரஷர் குக்கர் IS 2347:2023",
+    "expectedLanguage": "TA",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "TA-02",
+    "input": "தெரு விளக்குகளுக்கு 60 W 230 V IP65 எல்இடி லுமினியர் IS 10322",
+    "expectedLanguage": "TA",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "TA-03",
+    "input": "விவசாய பாசனத்திற்கு 5 HP சப்மர்சிபிள் பம்ப்",
+    "expectedLanguage": "TA",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

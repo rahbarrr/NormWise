@@ -1,0 +1,31 @@
+[
+  {
+    "id": "ML-01",
+    "input": "ഗാർഹിക പാചകത്തിന് സ്റ്റെയിൻലെസ്സ് സ്റ്റീൽ 5 litre പ്രഷർ കുക്കർ IS 2347:2023",
+    "expectedLanguage": "ML",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "ML-02",
+    "input": "തെരുവ് വിളക്കുകൾക്കായി 60 W 230 V IP65 എൽഇഡി ലുമിനെയർ IS 10322",
+    "expectedLanguage": "ML",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "ML-03",
+    "input": "കാർഷിക ജലസേചനത്തിന് 5 HP സബ്മെർസിബിൾ പമ്പ്",
+    "expectedLanguage": "ML",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

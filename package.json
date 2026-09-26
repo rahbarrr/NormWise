@@ -14,6 +14,7 @@
     "db:migrate": "npm run db:push --prefix server",
     "db:push": "npm run db:push --prefix server",
     "db:seed": "npm run db:seed --prefix server",
+    "evaluate:multilingual": "npm run evaluate:multilingual --prefix server",
     "test": "npm test --prefix server"
   },
   "dependencies": {

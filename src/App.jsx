@@ -16,6 +16,7 @@ import { Help } from "./pages/Help";
 import { StandardDetail } from "./pages/StandardDetail";
 import { KnowledgeGraph } from "./pages/KnowledgeGraph";
 import { AdminData } from "./pages/AdminData";
+import { AdminTerminology } from "./pages/AdminTerminology";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/standards/:id" element={<StandardDetail />} />
           <Route path="/knowledge" element={<KnowledgeGraph />} />
           <Route path="/admin/data" element={<AdminData />} />
+          <Route path="/admin/terminology" element={<AdminTerminology />} />
           <Route path="/saved" element={<Saved />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/help" element={<Help />} />

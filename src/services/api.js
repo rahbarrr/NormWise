@@ -107,6 +107,13 @@ export function adaptRecommendation(rec) {
     currentnessStatus: primaryStd?.status || "CURRENT",
     engineVersion: rec.engineVersion || "hybrid-v1",
     retrievalMethod: rec.retrievalMethod || "HYBRID",
+    originalText: rec.originalText || rec.requirementText || rec.requirement || "",
+    detectedLanguage: rec.detectedLanguage || "EN",
+    originalLanguage: rec.originalLanguage || rec.detectedLanguage || "EN",
+    normalizedText: rec.normalizedText || rec.requirementText || "",
+    translationText: rec.translationText || null,
+    normalizationMethod: rec.normalizationMethod || "DETERMINISTIC",
+    translationMethod: rec.translationMethod || null,
     status: formatStatusToUI(rec.status),
     rawStatus: rec.status,
     reviewer: latestReview?.reviewer?.name || rec.user?.name || "Dr. Ananya Verma",
@@ -461,4 +468,75 @@ export async function updateDocumentStatus(id, processingStatus) {
   });
   return res.data;
 }
+
+// ----------------------------------------------------
+// Multilingual & Terminology API (Phase 16)
+// ----------------------------------------------------
+
+export async function detectLanguageApi(text) {
+  const res = await apiRequest("/language/detect", {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
+  return res.data;
+}
+
+export async function normalizeLanguageApi(text, language) {
+  const res = await apiRequest("/language/normalize", {
+    method: "POST",
+    body: JSON.stringify({ text, language }),
+  });
+  return res.data;
+}
+
+export async function getTerminologyApi(params = {}) {
+  const query = new URLSearchParams();
+  if (params.page) query.set("page", params.page);
+  if (params.limit) query.set("limit", params.limit);
+  if (params.language) query.set("language", params.language);
+  if (params.termType) query.set("termType", params.termType);
+  if (params.isVerified !== undefined) query.set("isVerified", params.isVerified);
+  if (params.search) query.set("search", params.search);
+
+  const res = await apiRequest(`/terminology${query.toString() ? `?${query.toString()}` : ""}`);
+  return res.data;
+}
+
+export async function createTerminologyApi(data) {
+  const res = await apiRequest("/terminology", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function updateTerminologyApi(id, data) {
+  const res = await apiRequest(`/terminology/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function approveTerminologyApi(id) {
+  const res = await apiRequest(`/terminology/${id}/approve`, {
+    method: "POST",
+  });
+  return res.data;
+}
+
+export async function rejectTerminologyApi(id) {
+  const res = await apiRequest(`/terminology/${id}/reject`, {
+    method: "POST",
+  });
+  return res.data;
+}
+
+export async function deleteTerminologyApi(id) {
+  const res = await apiRequest(`/terminology/${id}`, {
+    method: "DELETE",
+  });
+  return res.data;
+}
+
 

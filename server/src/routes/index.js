@@ -4,6 +4,8 @@ import recommendationsRoutes from "./recommendations.routes.js";
 import documentsRoutes from "./documents.routes.js";
 import complianceRoutes from "./compliance.routes.js";
 import adminRoutes from "./admin.routes.js";
+import languageRoutes from "./language.routes.js";
+import terminologyRoutes from "./terminology.routes.js";
 import { handleRecommend } from "../controllers/recommendEngine.controller.js";
 
 const apiRouter = Router();
@@ -22,10 +24,13 @@ apiRouter.get("/health", (req, res) => {
 
 // Resource routes
 apiRouter.post("/recommend", handleRecommend);
+apiRouter.use("/language", languageRoutes);
+apiRouter.use("/terminology", terminologyRoutes);
 apiRouter.use("/standards", standardsRoutes);
 apiRouter.use("/recommendations", recommendationsRoutes);
 apiRouter.use("/documents", documentsRoutes);
 apiRouter.use("/compliance", complianceRoutes);
 apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/admin/terminology", terminologyRoutes);
 
 export default apiRouter;

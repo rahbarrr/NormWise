@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileCheck2,
+  Languages,
 } from "lucide-react";
 import { RequirementTextarea } from "../components/recommend/RequirementTextarea";
 import { ExampleRequirement } from "../components/recommend/ExampleRequirement";
@@ -28,6 +29,7 @@ export const Recommend = () => {
   // Primary input states
   const initialQuery = searchParams.get("q") || "";
   const [requirementText, setRequirementText] = useState(initialQuery);
+  const [selectedLanguage, setSelectedLanguage] = useState("AUTO");
   const [selectedExampleId, setSelectedExampleId] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
 
@@ -124,7 +126,9 @@ export const Recommend = () => {
     setValidationError("");
 
     try {
-      const apiResult = await runRecommendationEngine(targetQuery);
+      const apiResult = await runRecommendationEngine(targetQuery, {
+        language: selectedLanguage === "AUTO" ? null : selectedLanguage,
+      });
       navigate(
         `/analyze?id=${encodeURIComponent(apiResult.recommendationId)}&q=${encodeURIComponent(targetQuery)}&file=${encodeURIComponent(
           uploadedFile ? uploadedFile.name : ""
@@ -136,6 +140,7 @@ export const Recommend = () => {
             requirementText: targetQuery,
             file: uploadedFile ? { name: uploadedFile.name, size: uploadedFile.size } : null,
             attributes: apiResult.requirement || extractedAttributes,
+            detectedLanguage: apiResult.detectedLanguage || selectedLanguage,
           },
         }
       );
@@ -193,6 +198,36 @@ export const Recommend = () => {
         <div className="lg:col-span-8 space-y-6">
           <Card className="border-slate-200/90 shadow-xs">
             <CardContent className="p-5 sm:p-7 space-y-6">
+              {/* Requirement Language Selector (Section 17 - Phase 16) */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Procurement Requirement
+                </span>
+                <div className="flex items-center gap-2 text-xs">
+                  <Languages className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <label htmlFor="req-language" className="text-slate-500 font-medium">Requirement language:</label>
+                  <select
+                    id="req-language"
+                    value={selectedLanguage}
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    className="text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-2xs cursor-pointer"
+                  >
+                    <option value="AUTO">Auto Detect</option>
+                    <option value="EN">English</option>
+                    <option value="HI">Hindi (हिन्दी)</option>
+                    <option value="MR">Marathi (मराठी)</option>
+                    <option value="BN">Bengali (বাংলা)</option>
+                    <option value="GU">Gujarati (ગુજરાતી)</option>
+                    <option value="TA">Tamil (தமிழ்)</option>
+                    <option value="TE">Telugu (తెలుగు)</option>
+                    <option value="KN">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ML">Malayalam (മലയാളം)</option>
+                    <option value="PA">Punjabi (ਪੰਜਾਬੀ)</option>
+                    <option value="OR">Odia (ଓଡ଼ିଆ)</option>
+                  </select>
+                </div>
+              </div>
+
               {/* Textarea Section */}
               <RequirementTextarea
                 value={requirementText}

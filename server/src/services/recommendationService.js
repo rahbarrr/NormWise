@@ -6,6 +6,7 @@
  */
 import prisma from "../config/db.js";
 import { normalizeRequirement } from "./requirementNormalizationService.js";
+import { normalizeRequirementMultilingual } from "./multilingualNormalizationService.js";
 import { extractRequirements } from "./requirementService.js";
 import { retrieveCandidates } from "./retrievalService.js";
 import { rankCandidates } from "./standardRankingService.js";
@@ -33,19 +34,20 @@ export async function recommend(requirementText, options = {}) {
     throw error;
   }
 
-  // 2. Extract & normalize structured attributes
-  const normalized = normalizeRequirement(cleanText);
+  // 2. Multilingual Normalization & Structured Attribute Extraction (Phase 16)
+  const multilingual = await normalizeRequirementMultilingual(cleanText, options.language);
+  const cleanSearchText = multilingual.searchText || cleanText;
   const extracted = {
-    ...normalized,
-    technicalCharacteristics: normalized.technicalCharacteristics || [],
+    ...multilingual.extractedAttributes,
+    technicalCharacteristics: multilingual.extractedAttributes?.technicalCharacteristics || [],
   };
 
-  // 3-5. Retrieve & merge candidates (Structured + PostgreSQL FTS + pgvector semantic)
-  const retrievedCandidates = await retrieveCandidates(cleanText, extracted);
+  // 3-5. Retrieve & merge candidates using search text (Structured + PostgreSQL FTS + pgvector)
+  const retrievedCandidates = await retrieveCandidates(cleanSearchText, extracted);
   console.log(`[RecommendationEngine] Candidate retrieval completed. Found ${retrievedCandidates.length} candidate standard(s).`);
 
   // 6. Score and rank candidates using multi-factor ranking
-  const scoredCandidates = rankCandidates(retrievedCandidates, extracted, cleanText);
+  const scoredCandidates = rankCandidates(retrievedCandidates, extracted, cleanSearchText);
   console.log(`[RecommendationEngine] Candidate scoring completed. Top candidate: ${scoredCandidates[0]?.standardNumber || "none"} (Score: ${scoredCandidates[0]?.score || 0})`);
 
   // Edge Case: No candidates found or extremely low score (< 0.25)
@@ -182,11 +184,18 @@ export async function recommend(requirementText, options = {}) {
     data: {
       userId: defaultUser.id,
       requirementText: cleanText,
+      originalText: cleanText,
+      detectedLanguage: multilingual.detectedLanguage,
+      originalLanguage: multilingual.originalLanguage,
+      normalizedText: multilingual.normalizedText,
+      translationText: multilingual.searchText !== cleanText ? multilingual.searchText : null,
+      normalizationMethod: multilingual.normalizationMethod,
+      translationMethod: multilingual.translationMethod,
       product: extracted.product || topCandidate.title,
       material: extracted.material,
       capacity: extracted.capacity,
       application: extracted.application,
-      technicalCharacteristics: extracted.technicalCharacteristics.join(", "),
+      technicalCharacteristics: extracted.technicalCharacteristics ? extracted.technicalCharacteristics.join(", ") : "",
       confidence: confidenceScore,
       status: dbStatus,
       decisionNotes: statusReason,
@@ -283,11 +292,13 @@ export async function recommend(requirementText, options = {}) {
   return {
     recommendationId: savedRec.id,
     status: recommendationState,
+    state: recommendationState,
     confidence: confidenceScore,
     matchScore: topCandidate.score,
     scoreBreakdown: topCandidate.scoreBreakdown,
     statusReason,
     requirement: extracted,
+    extractedAttributes: extracted,
     clarifyingQuestions: extracted.clarifyingQuestions || [],
     primaryRecommendation: {
       standardId: topCandidate.standardId,
@@ -321,11 +332,30 @@ export async function recommend(requirementText, options = {}) {
     compliance,
     evidence,
     explanation,
+    originalText: cleanText,
+    detectedLanguage: multilingual.detectedLanguage,
+    originalLanguage: multilingual.originalLanguage,
+    languageName: multilingual.languageName,
+    normalizedText: multilingual.normalizedText,
+    searchText: multilingual.searchText,
+    protectedTerms: multilingual.protectedTerms,
     datasetProvenance: {
       standardsDatasetVersion: datasetVersion,
       importJobId: importJobId,
       engineVersion: "hybrid-v1",
       retrievalMethod: "HYBRID",
+      originalLanguage: multilingual.originalLanguage,
+      normalizationMethod: multilingual.normalizationMethod,
+      translationMethod: multilingual.translationMethod,
+    },
+    provenance: {
+      standardsDatasetVersion: datasetVersion,
+      importJobId: importJobId,
+      engineVersion: "hybrid-v1",
+      retrievalMethod: "HYBRID",
+      originalLanguage: multilingual.originalLanguage,
+      normalizationMethod: multilingual.normalizationMethod,
+      translationMethod: multilingual.translationMethod,
     },
     ...(options.debug ? {
       debug: {

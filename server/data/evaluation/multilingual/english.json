@@ -1,0 +1,31 @@
+[
+  {
+    "id": "EN-01",
+    "input": "Stainless steel pressure cooker with 5 litre capacity for domestic kitchen IS 2347:2023",
+    "expectedLanguage": "EN",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "EN-02",
+    "input": "LED luminaires 60 W 230 V IP65 for outdoor road lighting IS 10322",
+    "expectedLanguage": "EN",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65", "LED"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "EN-03",
+    "input": "Submersible pump set 5 HP with 3 phase induction motor for agricultural irrigation",
+    "expectedLanguage": "EN",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

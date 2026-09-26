@@ -1,0 +1,31 @@
+[
+  {
+    "id": "PA-01",
+    "input": "ਘਰੇਲੂ ਰਸੋਈ ਲਈ ਸਟੇਨਲੈਸ ਸਟੀਲ 5 litre ਪ੍ਰੈਸ਼ਰ ਕੁੱਕਰ IS 2347:2023",
+    "expectedLanguage": "PA",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "PA-02",
+    "input": "ਸੜਕ ਰੋਸ਼ਨੀ ਲਈ 60 W 230 V IP65 ਐਲਈਡੀ ਲੂਮੀਨੇਅਰ IS 10322",
+    "expectedLanguage": "PA",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "PA-03",
+    "input": "ਖੇਤੀ ਸਿੰਚਾਈ ਲਈ 5 HP ਸਬਮਰਸੀਬਲ ਪੰਪ",
+    "expectedLanguage": "PA",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "id": "BN-01",
+    "input": "গার্হস্থ্য রান্নার জন্য স্টেইনলেস স্টিলের 5 litre প্রেসার কুকার IS 2347:2023",
+    "expectedLanguage": "BN",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "BN-02",
+    "input": "রাস্তার আলোর জন্য 60 W 230 V IP65 এলইডি লুমিনায়ার IS 10322",
+    "expectedLanguage": "BN",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "BN-03",
+    "input": "কৃষি সেচের জন্য 5 HP সাবমার্সিবল পাম্প",
+    "expectedLanguage": "BN",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

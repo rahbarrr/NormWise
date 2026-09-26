@@ -135,6 +135,11 @@ export const Results = () => {
             ...baseMock,
             id: apiData.id,
             requirement: apiData.requirement || apiData.requirementText,
+            originalText: apiData.originalText || apiData.requirementText || apiData.requirement || "",
+            detectedLanguage: apiData.detectedLanguage || "EN",
+            languageName: apiData.languageName,
+            normalizedText: apiData.normalizedText || "",
+            searchText: apiData.searchText || apiData.normalizedText || "",
             recommendedStandard: recStdNumber,
             standardTitle: apiData.standardTitle || baseMock.standardTitle,
             confidence: apiData.confidence || baseMock.confidence,
@@ -387,13 +392,18 @@ export const Results = () => {
         </div>
       )}
 
-      {/* Top: Requirement Summary Card */}
+      {/* Top: Requirement Summary Card (Phase 16 Multilingual) */}
       <RequirementSummary
         requirement={result.requirement}
+        originalText={result.originalText}
+        detectedLanguage={result.detectedLanguage}
+        languageName={result.languageName}
+        normalizedText={result.normalizedText}
+        searchText={result.searchText}
         attributes={result.attributes}
         onEditRequirement={() =>
           navigate("/recommend", {
-            state: { initialRequirement: result.requirement },
+            state: { initialRequirement: result.originalText || result.requirement },
           })
         }
       />

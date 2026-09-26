@@ -17,6 +17,7 @@ import {
   UploadCloud,
   Network,
   Database,
+  Languages,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
 import { cn } from "../../lib/utils";
@@ -74,6 +75,13 @@ const referenceNavItems = [
     icon: Database,
     badge: "Data",
     badgeVariant: "blue",
+  },
+  {
+    name: "Terminology Review",
+    path: "/admin/terminology",
+    icon: Languages,
+    badge: "Indic",
+    badgeVariant: "emerald",
   },
   {
     name: "Human Review",

@@ -1,0 +1,31 @@
+[
+  {
+    "id": "GU-01",
+    "input": "ઘરેલું રસોઈ માટે સ્ટેનલેસ સ્ટીલનું 5 litre પ્રેશર કુકર IS 2347:2023",
+    "expectedLanguage": "GU",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "GU-02",
+    "input": "શેરી લાઇટિંગ માટે 60 W 230 V IP65 એલઇડી લ્યુમિનેર IS 10322",
+    "expectedLanguage": "GU",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "GU-03",
+    "input": "ખેતી માટે 5 HP સબમર્સિબલ પંપ",
+    "expectedLanguage": "GU",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "id": "MR-01",
+    "input": "घरगुती स्वयंपाकासाठी स्टेनलेस स्टीलचे 5 litre प्रेशर कुकर IS 2347:2023",
+    "expectedLanguage": "MR",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "MR-02",
+    "input": "रस्त्यावरील दिव्यांसाठी 60 W 230 V IP65 एलईडी ल्युमिनेअर IS 10322",
+    "expectedLanguage": "MR",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "MR-03",
+    "input": "शेतीच्या पाण्यासाठी 5 HP सबमर्सिबल पंप संच",
+    "expectedLanguage": "MR",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]

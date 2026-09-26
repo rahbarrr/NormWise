@@ -1,0 +1,31 @@
+[
+  {
+    "id": "KN-01",
+    "input": "ಮನೆಯ ಅಡುಗೆಗಾಗಿ ಸ್ಟೇನ್‌ಲೆಸ್ ಸ್ಟೀಲ್ 5 litre ಪ್ರೆಶರ್ ಕುಕ್ಕರ್ IS 2347:2023",
+    "expectedLanguage": "KN",
+    "expectedProtectedTerms": ["IS 2347:2023", "5 L"],
+    "expectedProduct": "pressure cooker",
+    "expectedMaterial": "stainless steel",
+    "expectedCapacity": "5 L",
+    "expectedStandardId": "IS 2347"
+  },
+  {
+    "id": "KN-02",
+    "input": "ರಸ್ತೆ ದೀಪಗಳಿಗಾಗಿ 60 W 230 V IP65 ಎಲ್ಇಡಿ ಲ್ಯೂಮಿನೇರ್ IS 10322",
+    "expectedLanguage": "KN",
+    "expectedProtectedTerms": ["IS 10322", "60 W", "230 V", "IP65"],
+    "expectedProduct": "LED luminaire",
+    "expectedPower": "60 W",
+    "expectedVoltage": "230 V",
+    "expectedStandardId": "IS 10322"
+  },
+  {
+    "id": "KN-03",
+    "input": "ಕೃಷಿ ನೀರಾವರಿಗಾಗಿ 5 HP ಸಬ್‌ಮರ್ಸಿಬಲ್ ಪಂಪ್",
+    "expectedLanguage": "KN",
+    "expectedProtectedTerms": ["5 HP"],
+    "expectedProduct": "submersible pump",
+    "expectedPower": "5 HP",
+    "expectedStandardId": null
+  }
+]
