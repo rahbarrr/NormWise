@@ -12,10 +12,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
-  const headers = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
+  const headers = { ...options.headers };
+  
+  // Set JSON header only if not FormData and not already set
+  if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     const response = await fetch(url, {
@@ -352,8 +354,52 @@ export async function getAuditEvents(recommendationId) {
 }
 
 // ----------------------------------------------------
-// Document Metadata API
+// Document Processing API (Phase 11)
 // ----------------------------------------------------
+
+export async function uploadDocumentFile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await apiRequest("/documents/upload", {
+    method: "POST",
+    body: formData,
+  });
+  return res.data;
+}
+
+export async function processDocument(id) {
+  const res = await apiRequest(`/documents/${id}/process`, {
+    method: "POST",
+  });
+  return res.data;
+}
+
+export async function getDocumentStatus(id) {
+  const res = await apiRequest(`/documents/${id}/status`);
+  return res.data;
+}
+
+export async function getDocumentRequirements(id) {
+  const res = await apiRequest(`/documents/${id}/requirements`);
+  return res.data;
+}
+
+export async function updateDocumentRequirements(id, data) {
+  const res = await apiRequest(`/documents/${id}/requirements`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function recommendFromDocument(id, data = {}) {
+  const res = await apiRequest(`/documents/${id}/recommend`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
 
 export async function createDocument(data) {
   const res = await apiRequest("/documents", {
@@ -375,3 +421,4 @@ export async function updateDocumentStatus(id, processingStatus) {
   });
   return res.data;
 }
+

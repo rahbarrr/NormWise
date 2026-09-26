@@ -7,6 +7,7 @@ export const DocumentActionBar = ({
   onSaveDraft,
   onAnalyze,
   isDraftSaved = false,
+  isLoading = false,
 }) => {
   return (
     <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -27,6 +28,7 @@ export const DocumentActionBar = ({
           variant="secondary"
           size="sm"
           onClick={onBack}
+          disabled={isLoading}
           className="text-xs h-9 font-medium text-slate-700"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1 text-slate-500" />
@@ -38,6 +40,7 @@ export const DocumentActionBar = ({
           variant="secondary"
           size="sm"
           onClick={onSaveDraft}
+          disabled={isLoading}
           className="text-xs h-9 font-medium text-slate-700"
         >
           <Bookmark className={`w-3.5 h-3.5 mr-1 ${isDraftSaved ? "fill-amber-500 text-amber-500" : "text-slate-500"}`} />
@@ -49,9 +52,10 @@ export const DocumentActionBar = ({
           variant="primary"
           size="sm"
           onClick={onAnalyze}
+          disabled={isLoading}
           className="text-xs h-9 font-semibold shadow-xs"
         >
-          <span>Analyze Requirements</span>
+          <span>{isLoading ? "Starting Recommendation..." : "Analyze Requirements"}</span>
           <ArrowRight className="w-3.5 h-3.5 ml-1" />
         </Button>
       </div>

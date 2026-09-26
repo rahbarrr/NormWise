@@ -17,13 +17,13 @@ const PROCESSING_STEPS = [
   },
   {
     id: 3,
-    title: "Identifying product information",
-    description: "Detecting equipment classifications, material grades and capacity dimensions.",
+    title: "Checking document quality",
+    description: "Evaluating text usability, clarity, and scanning characteristics.",
   },
   {
     id: 4,
-    title: "Identifying technical requirements",
-    description: "Correlating test method thresholds, safety valves and operating parameters.",
+    title: "Extracting requirements",
+    description: "Identifying equipment classifications, material grades, capacity and technical parameters.",
   },
   {
     id: 5,
@@ -32,25 +32,30 @@ const PROCESSING_STEPS = [
   },
 ];
 
-export const DocumentProcessing = ({ onComplete }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+export const DocumentProcessing = ({ onComplete, activeStep }) => {
+  const [currentStep, setCurrentStep] = useState(activeStep || 1);
 
   useEffect(() => {
+    if (activeStep) {
+      setCurrentStep(activeStep);
+      return;
+    }
+
     const timer = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev >= 5) {
           clearInterval(timer);
           setTimeout(() => {
-            onComplete();
+            if (onComplete) onComplete();
           }, 800);
           return 5;
         }
         return prev + 1;
       });
-    }, 1200);
+    }, 1100);
 
     return () => clearInterval(timer);
-  }, [onComplete]);
+  }, [activeStep, onComplete]);
 
   return (
     <Card className="border-slate-200/90 shadow-xs overflow-hidden">

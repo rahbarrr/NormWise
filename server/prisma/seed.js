@@ -584,7 +584,7 @@ async function main() {
       fileType: "application/pdf",
       fileSize: "2457600",
       pageCount: 14,
-      processingStatus: "PROCESSED",
+      processingStatus: "COMPLETED",
     },
   });
 

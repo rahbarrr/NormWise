@@ -73,12 +73,20 @@ enum AuditAction {
   RECOMMENDATION_ACCEPTED
   MARKED_NOT_APPLICABLE
   DRAFT_SAVED
+  DOCUMENT_UPLOADED
+  DOCUMENT_PROCESSED
+  REQUIREMENTS_EXTRACTED
+  REQUIREMENTS_EDITED
+  RECOMMENDATION_STARTED
 }
 
 enum ProcessingStatus {
   UPLOADED
   PROCESSING
+  TEXT_EXTRACTED
+  REQUIREMENTS_EXTRACTED
   PROCESSED
+  COMPLETED
   FAILED
 }
 
@@ -244,29 +252,36 @@ model ReviewChecklist {
 }
 
 model AuditEvent {
-  id               String      @id @default(uuid())
-  recommendationId String
+  id               String          @id @default(uuid())
+  recommendationId String?
   actorId          String?
   action           AuditAction
-  details          String      @db.Text
-  createdAt        DateTime    @default(now())
+  details          String          @db.Text
+  createdAt        DateTime        @default(now())
 
-  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  actor          User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  recommendation   Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  actor            User?           @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@map("audit_events")
 }
 
 model Document {
-  id               String           @id @default(uuid())
-  recommendationId String?
-  filename         String
-  fileType         String
-  fileSize         String
-  pageCount        Int              @default(1)
-  processingStatus ProcessingStatus @default(UPLOADED)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                     String           @id @default(uuid())
+  recommendationId       String?
+  filename               String
+  originalFilename       String?
+  fileType               String
+  fileSize               String
+  storagePath            String?
+  pageCount              Int              @default(1)
+  processingStatus       ProcessingStatus @default(UPLOADED)
+  processingError        String?          @db.Text
+  extractedText          String?          @db.Text
+  extractionMethod       String?
+  textExtractionQuality  String?
+  extractedRequirements  Json?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   recommendation Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
 
