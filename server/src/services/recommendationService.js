@@ -5,8 +5,10 @@
  * and audit event logging.
  */
 import prisma from "../config/db.js";
+import { normalizeRequirement } from "./requirementNormalizationService.js";
 import { extractRequirements } from "./requirementService.js";
 import { retrieveCandidates } from "./retrievalService.js";
+import { rankCandidates } from "./standardRankingService.js";
 import { scoreCandidates } from "./scoringService.js";
 import { validateCurrentness } from "./currentnessService.js";
 import { getRelatedStandards } from "./relatedStandardsService.js";
@@ -31,15 +33,19 @@ export async function recommend(requirementText, options = {}) {
     throw error;
   }
 
-  // 2. Extract structured attributes
-  const extracted = await extractRequirements(cleanText);
+  // 2. Extract & normalize structured attributes
+  const normalized = normalizeRequirement(cleanText);
+  const extracted = {
+    ...normalized,
+    technicalCharacteristics: normalized.technicalCharacteristics || [],
+  };
 
-  // 3-5. Retrieve & merge candidates (PostgreSQL FTS + pgvector semantic)
+  // 3-5. Retrieve & merge candidates (Structured + PostgreSQL FTS + pgvector semantic)
   const retrievedCandidates = await retrieveCandidates(cleanText, extracted);
   console.log(`[RecommendationEngine] Candidate retrieval completed. Found ${retrievedCandidates.length} candidate standard(s).`);
 
-  // 6. Score and rank candidates
-  const scoredCandidates = scoreCandidates(retrievedCandidates, extracted, cleanText);
+  // 6. Score and rank candidates using multi-factor ranking
+  const scoredCandidates = rankCandidates(retrievedCandidates, extracted, cleanText);
   console.log(`[RecommendationEngine] Candidate scoring completed. Top candidate: ${scoredCandidates[0]?.standardNumber || "none"} (Score: ${scoredCandidates[0]?.score || 0})`);
 
   // Edge Case: No candidates found or extremely low score (< 0.25)
@@ -110,9 +116,11 @@ export async function recommend(requirementText, options = {}) {
 
   const isMissingKeyAttributes = !extracted.product;
 
-  if (hasCloseAlternative || isMissingKeyAttributes) {
+  if (extracted.isAmbiguous || hasCloseAlternative || isMissingKeyAttributes) {
     recommendationState = "CLARIFICATION_REQUIRED";
-    statusReason = hasCloseAlternative
+    statusReason = extracted.ambiguityReason
+      ? `Important requirement attributes: ${extracted.ambiguityReason} More information is needed.`
+      : hasCloseAlternative
       ? `Multiple candidate standards (${topCandidate.standardNumber} and ${secondCandidate.standardNumber}) exhibit close matching scores. Clarification of operating duty or rating will refine the determination.`
       : "Important requirement attributes (such as primary product type) were not clearly specified in the input text.";
   } else if (!currentness.canProceedAsPrimary) {
@@ -184,6 +192,9 @@ export async function recommend(requirementText, options = {}) {
       decisionNotes: statusReason,
       standardsDatasetVersion: datasetVersion,
       importJobId: importJobId,
+      engineVersion: "hybrid-v1",
+      retrievalMethod: "HYBRID",
+      embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
     },
   });
 
@@ -193,6 +204,13 @@ export async function recommend(requirementText, options = {}) {
       recommendationId: savedRec.id,
       standardId: topCandidate.standardId,
       matchConfidence: confidenceScore,
+      matchScore: topCandidate.score,
+      productScore: topCandidate.scoreBreakdown?.productScore,
+      applicationScore: topCandidate.scoreBreakdown?.applicationScore,
+      materialScore: topCandidate.scoreBreakdown?.materialScore,
+      technicalScore: topCandidate.scoreBreakdown?.technicalScore,
+      semanticScore: topCandidate.scoreBreakdown?.semanticScore,
+      retrievedBy: topCandidate.retrievedBy || ["lexical"],
       reason: topCandidate.reasons.join(" ") || "Primary specification match.",
       isPrimary: true,
     },
@@ -209,6 +227,13 @@ export async function recommend(requirementText, options = {}) {
         recommendationId: savedRec.id,
         standardId: alt.standardId,
         matchConfidence: Math.round(alt.score * 100),
+        matchScore: alt.score,
+        productScore: alt.scoreBreakdown?.productScore,
+        applicationScore: alt.scoreBreakdown?.applicationScore,
+        materialScore: alt.scoreBreakdown?.materialScore,
+        technicalScore: alt.scoreBreakdown?.technicalScore,
+        semanticScore: alt.scoreBreakdown?.semanticScore,
+        retrievedBy: alt.retrievedBy || ["lexical"],
         reason: alt.reasons.join(" ") || "Alternative candidate standard.",
         isPrimary: false,
       },
@@ -259,8 +284,11 @@ export async function recommend(requirementText, options = {}) {
     recommendationId: savedRec.id,
     status: recommendationState,
     confidence: confidenceScore,
+    matchScore: topCandidate.score,
+    scoreBreakdown: topCandidate.scoreBreakdown,
     statusReason,
     requirement: extracted,
+    clarifyingQuestions: extracted.clarifyingQuestions || [],
     primaryRecommendation: {
       standardId: topCandidate.standardId,
       standardNumber: topCandidate.standardNumber,
@@ -269,6 +297,9 @@ export async function recommend(requirementText, options = {}) {
       revision: topCandidate.revision,
       status: topCandidate.status,
       matchScore: topCandidate.score,
+      scoreBreakdown: topCandidate.scoreBreakdown,
+      retrievedBy: topCandidate.retrievedBy || ["lexical"],
+      explanation: topCandidate.explanation,
       reasons: topCandidate.reasons,
       warnings: topCandidate.warnings,
       currentness,
@@ -279,6 +310,8 @@ export async function recommend(requirementText, options = {}) {
       title: alt.title,
       status: alt.status,
       matchScore: alt.score,
+      scoreBreakdown: alt.scoreBreakdown,
+      retrievedBy: alt.retrievedBy || ["lexical"],
       reasons: alt.reasons,
       warnings: alt.warnings,
     })),
@@ -291,7 +324,20 @@ export async function recommend(requirementText, options = {}) {
     datasetProvenance: {
       standardsDatasetVersion: datasetVersion,
       importJobId: importJobId,
+      engineVersion: "hybrid-v1",
+      retrievalMethod: "HYBRID",
     },
+    ...(options.debug ? {
+      debug: {
+        retrievedBy: topCandidate.retrievedBy,
+        scoreBreakdown: topCandidate.scoreBreakdown,
+        candidateCount: retrievedCandidates.length,
+        candidateSources: retrievedCandidates.map((c) => ({
+          standardNumber: c.standardNumber,
+          retrievedBy: c.retrievedBy,
+        })),
+      },
+    } : {}),
   };
 }
 

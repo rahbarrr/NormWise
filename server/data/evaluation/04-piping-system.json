@@ -1,0 +1,12 @@
+{
+  "id": "eval-04",
+  "requirement": "High density polyethylene HDPE pipes PE-100 for municipal potable water supply distribution",
+  "expectedCategory": "Civil & Piping",
+  "expectedStandardNumber": "IS 4984:2016",
+  "requiredAttributes": {
+    "product": "HDPE Pipes for Water Supply",
+    "material": "High Density Polyethylene (PE-100)",
+    "application": "Potable Water Supply Distribution"
+  },
+  "notes": "Verified against polyethylene pipes for water supply specifications."
+}

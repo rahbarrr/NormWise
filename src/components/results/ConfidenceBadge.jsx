@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 
 export const ConfidenceBadge = ({
   confidence = 94,
-  label = "Recommendation confidence",
+  label = "Match score",
   className,
 }) => {
   const isHigh = confidence >= 90;

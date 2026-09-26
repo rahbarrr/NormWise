@@ -1,0 +1,11 @@
+{
+  "id": "eval-03",
+  "requirement": "Flush type modular switches and electrical socket outlets for educational institution classrooms",
+  "expectedCategory": "Electrical Accessories",
+  "expectedStandardNumber": "IS 3854:1997",
+  "requiredAttributes": {
+    "product": "Switches and Electrical Accessories",
+    "application": "Educational Institution Hostels and Classrooms"
+  },
+  "notes": "Verified against switches for domestic and similar fixed electrical installations."
+}

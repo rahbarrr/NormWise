@@ -1,0 +1,13 @@
+{
+  "id": "eval-01",
+  "requirement": "Stainless steel 5 litre pressure cooker for institutional canteen kitchen",
+  "expectedCategory": "Kitchenware",
+  "expectedStandardNumber": "IS 2347:2023",
+  "requiredAttributes": {
+    "product": "Pressure Cooker",
+    "material": "Stainless Steel",
+    "capacity": "5 Litre",
+    "application": "Institutional Canteen Kitchen"
+  },
+  "notes": "Verified against domestic & commercial pressure cooker baseline."
+}

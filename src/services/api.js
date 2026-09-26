@@ -78,11 +78,20 @@ export function formatStatusToDB(status) {
 export function adaptRecommendation(rec) {
   if (!rec) return null;
 
-  const primaryStd = rec.recommendationStandards?.find((rs) => rs.isPrimary)?.standard 
-    || rec.recommendationStandards?.[0]?.standard 
+  const primaryRs = rec.recommendationStandards?.find((rs) => rs.isPrimary) 
+    || rec.recommendationStandards?.[0] 
     || null;
+  const primaryStd = primaryRs?.standard || null;
 
   const latestReview = rec.reviews?.[0] || null;
+
+  const scoreBreakdown = {
+    productScore: primaryRs?.productScore ?? 0.92,
+    applicationScore: primaryRs?.applicationScore ?? 0.85,
+    materialScore: primaryRs?.materialScore ?? 0.90,
+    technicalScore: primaryRs?.technicalScore ?? 0.70,
+    semanticScore: primaryRs?.semanticScore ?? 0.88,
+  };
 
   return {
     ...rec,
@@ -92,7 +101,12 @@ export function adaptRecommendation(rec) {
     requirementText: rec.requirementText || rec.requirement || "",
     standard: primaryStd?.standardNumber || rec.standard || "IS 2347:2023",
     standardTitle: primaryStd?.title || rec.standardTitle || "Pressure cookers — Specification",
-    confidence: rec.confidence ?? 94,
+    confidence: rec.confidence ?? (primaryRs?.matchScore ? Math.round(primaryRs.matchScore * 100) : 94),
+    matchScore: primaryRs?.matchScore ?? (rec.confidence ? rec.confidence / 100 : 0.94),
+    scoreBreakdown,
+    currentnessStatus: primaryStd?.status || "CURRENT",
+    engineVersion: rec.engineVersion || "hybrid-v1",
+    retrievalMethod: rec.retrievalMethod || "HYBRID",
     status: formatStatusToUI(rec.status),
     rawStatus: rec.status,
     reviewer: latestReview?.reviewer?.name || rec.user?.name || "Dr. Ananya Verma",
@@ -107,8 +121,34 @@ export function adaptRecommendation(rec) {
     standards: rec.recommendationStandards?.map((rs) => ({
       ...rs.standard,
       matchConfidence: rs.matchConfidence,
+      matchScore: rs.matchScore,
+      productScore: rs.productScore,
+      applicationScore: rs.applicationScore,
+      materialScore: rs.materialScore,
+      technicalScore: rs.technicalScore,
+      semanticScore: rs.semanticScore,
+      retrievedBy: rs.retrievedBy,
       reason: rs.reason,
       isPrimary: rs.isPrimary,
+    })) || [],
+    alternatives: rec.recommendationStandards?.filter((rs) => !rs.isPrimary)?.map((rs) => ({
+      id: rs.standard?.id || rs.id,
+      standardId: rs.standardId,
+      standardNumber: rs.standard?.standardNumber,
+      code: rs.standard?.standardNumber,
+      title: rs.standard?.title,
+      status: rs.standard?.status || "CURRENT",
+      matchScore: rs.matchScore ?? (rs.matchConfidence ? rs.matchConfidence / 100 : 0.75),
+      matchConfidence: rs.matchConfidence ?? 75,
+      scoreBreakdown: {
+        productScore: rs.productScore,
+        applicationScore: rs.applicationScore,
+        materialScore: rs.materialScore,
+        technicalScore: rs.technicalScore,
+        semanticScore: rs.semanticScore,
+      },
+      retrievedBy: rs.retrievedBy || ["lexical"],
+      reason: rs.reason || "Alternative candidate standard",
     })) || [],
     evidence: rec.evidence || [],
     review: latestReview,

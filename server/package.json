@@ -13,6 +13,7 @@
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
     "import:standards": "node bin/import-standards.js",
+    "evaluate:recommendations": "node bin/evaluate-recommendations.js",
     "test": "node --test tests/**/*.test.js"
   },
   "prisma": {

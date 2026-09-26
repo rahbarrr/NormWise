@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
 import { RecommendationHeader } from "../components/results/RecommendationHeader";
 import { RequirementSummary } from "../components/results/RequirementSummary";
 import { RecommendationCard } from "../components/results/RecommendationCard";
 import { WhyThisStandard } from "../components/results/WhyThisStandard";
+import { AlternativeStandards } from "../components/results/AlternativeStandards";
 import { CurrentStatusCard } from "../components/results/CurrentStatusCard";
 import { CertificationCard } from "../components/results/CertificationCard";
 import { AlliedStandards } from "../components/results/AlliedStandards";
@@ -74,16 +76,23 @@ export const Results = () => {
           // Map backend record to results view shape
           const baseMock = getMockResultForQuery(apiData.requirement || apiData.requirementText || "Pressure cooker");
           
-          // Map alternative standards
-          const mappedAllied = apiData.standards && apiData.standards.length > 1
+          // Map alternative standards (Other Possible Matches)
+          const alternativesList = apiData.alternatives && apiData.alternatives.length > 0
+            ? apiData.alternatives
+            : apiData.standards && apiData.standards.length > 1
             ? apiData.standards.slice(1).map((s) => ({
                 id: s.id,
+                standardId: s.id,
+                standardNumber: s.standardNumber,
                 code: s.standardNumber,
                 title: s.title,
-                relation: s.reason || "Alternative Candidate Standard",
-                confidence: s.matchConfidence || 75,
+                status: s.status || "CURRENT",
+                matchConfidence: s.matchConfidence || 75,
+                matchScore: s.matchScore ?? ((s.matchConfidence || 75) / 100),
+                retrievedBy: s.retrievedBy || ["lexical"],
+                reason: s.reason || "Alternative candidate standard",
               }))
-            : baseMock.alliedStandards;
+            : [];
 
           // Map evidence if present
           const mappedEvidence = apiData.evidence && apiData.evidence.length > 0
@@ -102,7 +111,7 @@ export const Results = () => {
           const relatedRes = await getRelatedStandards(recStdNumber).catch(() => null);
           const finalAllied = relatedRes?.relatedStandards && relatedRes.relatedStandards.length > 0
             ? relatedRes.relatedStandards
-            : mappedAllied;
+            : baseMock.alliedStandards;
 
           // Load compliance evaluation
           const compRes = await getRecommendationCompliance(apiData.id).catch(() => null);
@@ -129,11 +138,29 @@ export const Results = () => {
             recommendedStandard: recStdNumber,
             standardTitle: apiData.standardTitle || baseMock.standardTitle,
             confidence: apiData.confidence || baseMock.confidence,
+            matchScore: apiData.matchScore || (apiData.confidence ? apiData.confidence / 100 : 0.94),
+            scoreBreakdown: apiData.scoreBreakdown || {
+              productScore: 0.92,
+              applicationScore: 0.85,
+              materialScore: 0.90,
+              technicalScore: 0.70,
+              semanticScore: 0.88,
+            },
+            currentnessStatus: apiData.currentnessStatus || apiData.standards?.[0]?.status || "CURRENT",
+            engineVersion: apiData.engineVersion || "hybrid-v1",
+            retrievalMethod: apiData.retrievalMethod || "HYBRID",
+            clarifyingQuestions: apiData.clarifyingQuestions || (apiData.decisionNotes?.includes("More information is needed") ? [
+              "What is the specific product type or equipment intended?",
+              "What is the intended application or operating environment?",
+              "Are there specific capacity, voltage, or material ratings?",
+            ] : []),
             status: apiData.status,
+            rawStatus: apiData.rawStatus || apiData.status,
             decisionNotes: apiData.decisionNotes,
             matchReasons: apiData.decisionNotes
               ? [apiData.decisionNotes, ...baseMock.matchReasons.slice(1)]
               : baseMock.matchReasons,
+            alternatives: alternativesList,
             alliedStandards: finalAllied,
             isDemoDataset: Boolean(relatedRes?.isDemoDataset),
             evidence: mappedEvidence,
@@ -371,6 +398,41 @@ export const Results = () => {
         }
       />
 
+      {/* Ambiguous Requirement / Clarification Needed (Section 21) */}
+      {(result.rawStatus === "CLARIFICATION_REQUESTED" || result.status === "Clarification Requested" || (result.clarifyingQuestions && result.clarifyingQuestions.length > 0)) && (
+        <div className="p-5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 space-y-3 shadow-xs">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-amber-900">
+                More information is needed
+              </h4>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                {result.decisionNotes || "The procurement requirement is broad or missing key attributes. Refining the requirement parameters will yield an exact standard recommendation."}
+              </p>
+              {result.clarifyingQuestions && result.clarifyingQuestions.length > 0 && (
+                <div className="pt-1">
+                  <span className="text-xs font-semibold text-amber-900">Clarification questions:</span>
+                  <ul className="list-disc list-inside text-xs text-amber-900 space-y-1 mt-1 font-medium">
+                    {result.clarifyingQuestions.map((q, idx) => (
+                      <li key={idx}>{q}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => navigate("/recommend", { state: { initialRequirement: result.requirement } })}
+              className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+            >
+              Provide Clarification
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Low Confidence Notice (Conditional) */}
       {result.confidence < 75 && (
         <LowConfidenceState
@@ -388,18 +450,27 @@ export const Results = () => {
         department={result.department}
         edition={result.edition}
         revision={result.revision}
-        status={result.status}
+        status={result.currentnessStatus || result.status}
         icsCode={result.icsCode}
         onViewFullStandard={() => {
           showToast(`Displaying standard dossier for ${result.recommendedStandard}`);
         }}
       />
 
-      {/* Why This Standard Was Recommended */}
+      {/* Why This Standard Was Recommended (Section 26 & 27) */}
       <WhyThisStandard
+        scoreBreakdown={result.scoreBreakdown}
+        currentnessStatus={result.currentnessStatus || result.status}
         matchReasons={result.matchReasons}
         keyRequirementsMet={result.keyRequirementsMet}
+        whyItems={result.whyItems}
+        onOpenEvidence={handleOpenEvidence}
       />
+
+      {/* Alternative Standards / Other Possible Matches (Section 28) */}
+      {result.alternatives && result.alternatives.length > 0 && (
+        <AlternativeStandards alternatives={result.alternatives} />
+      )}
 
       {/* Grid: Current Status & Certification */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

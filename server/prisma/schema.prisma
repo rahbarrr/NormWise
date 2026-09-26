@@ -180,6 +180,7 @@ model Standard {
   relatedStandards        RelatedStandard[]        @relation("StandardToRelated")
   referencedBy            RelatedStandard[]        @relation("RelatedToStandard")
   complianceRules         ComplianceRule[]
+  standardEmbedding       StandardEmbedding?
 
   @@index([standardNumber])
   @@index([category])
@@ -221,6 +222,9 @@ model Recommendation {
   decisionNotes            String?              @db.Text
   standardsDatasetVersion  String?
   importJobId              String?
+  engineVersion            String?              @default("hybrid-v1")
+  retrievalMethod          String?              @default("HYBRID")
+  embeddingModel           String?
   createdAt                DateTime             @default(now())
   updatedAt                DateTime             @updatedAt
 
@@ -241,6 +245,13 @@ model RecommendationStandard {
   recommendationId String
   standardId       String
   matchConfidence  Int      @default(90)
+  matchScore       Float?   @default(0.90)
+  productScore     Float?
+  applicationScore Float?
+  materialScore    Float?
+  technicalScore   Float?
+  semanticScore    Float?
+  retrievedBy      String[] @default([])
   reason           String?  @db.Text
   isPrimary        Boolean  @default(false)
 
@@ -488,6 +499,21 @@ model StandardTerm {
   @@unique([normalizedTerm, category])
   @@index([normalizedTerm])
   @@map("standard_terms")
+}
+
+model StandardEmbedding {
+  id          String   @id @default(uuid())
+  standardId  String   @unique
+  embedding   Unsupported("vector(1536)")?
+  modelName   String   @default("text-embedding-3-small")
+  contentHash String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  standard    Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@index([contentHash])
+  @@map("standard_embeddings")
 }
 
 

@@ -1,16 +1,20 @@
 /**
- * NormWise Candidate Retrieval Service
- * Hybrid retrieval engine combining PostgreSQL full-text keyword matching,
- * structured metadata field overlap, and pgvector semantic search.
+ * NormWise Candidate Retrieval Service (Phase 15)
+ * Hybrid multi-signal retrieval engine combining:
+ * 1. Structured attribute matching (product, category, application, material)
+ * 2. PostgreSQL lexical full-text search (tsquery, ts_rank, ILIKE, keyword arrays)
+ * 3. pgvector semantic cosine similarity search
  */
 import prisma from "../config/db.js";
-import { generateEmbedding } from "./embeddingService.js";
+import { generateRequirementEmbedding } from "./embeddingService.js";
+import { searchSimilarStandards } from "./vectorSearchService.js";
+import { matchStructuredStandards } from "./structuredMatchService.js";
 import { RETRIEVAL_LIMITS } from "../config/recommendationConfig.js";
 
 /**
- * Retrieve candidates using keyword and full-text search in PostgreSQL
+ * Retrieve candidates using keyword and lexical full-text search in PostgreSQL
  */
-export async function retrieveKeywordCandidates(requirementText, extractedAttributes = {}) {
+export async function retrieveLexicalCandidates(requirementText, extractedAttributes = {}) {
   const { product, material, application } = extractedAttributes;
 
   // Extract terms for search
@@ -39,6 +43,8 @@ export async function retrieveKeywordCandidates(requirementText, extractedAttrib
         s.status,
         s.description,
         s.scope,
+        s.category,
+        s."technicalDomain",
         s.keywords,
         s."applicableProducts",
         s.materials,
@@ -59,9 +65,14 @@ export async function retrieveKeywordCandidates(requirementText, extractedAttrib
       LIMIT ${RETRIEVAL_LIMITS.KEYWORD_LIMIT};
     `;
 
-    return results;
+    return results.map((r) => ({
+      ...r,
+      retrievalSignals: {
+        lexicalRank: r.rank ? parseFloat(r.rank) : 0.5,
+      },
+    }));
   } catch (error) {
-    // Fallback to Prisma findMany if raw FTS query encounters specific grammar edge-case
+    // Fallback to Prisma ORM if raw FTS query encounters specific grammar edge-case
     console.warn("[RetrievalService] Raw FTS fallback to Prisma ORM:", error.message);
     const orConditions = terms.map((term) => ({
       OR: [
@@ -77,92 +88,122 @@ export async function retrieveKeywordCandidates(requirementText, extractedAttrib
     if (material) orConditions.push({ materials: { has: material } });
     if (application) orConditions.push({ applications: { has: application } });
 
-    return await prisma.standard.findMany({
+    const fallbackResults = await prisma.standard.findMany({
       where: { OR: orConditions },
       take: RETRIEVAL_LIMITS.KEYWORD_LIMIT,
     });
+
+    return fallbackResults.map((r) => ({
+      ...r,
+      retrievalSignals: {
+        lexicalRank: 0.5,
+      },
+    }));
   }
 }
 
+// Alias for backwards-compatibility
+export const retrieveKeywordCandidates = retrieveLexicalCandidates;
+
 /**
- * Retrieve candidates using pgvector cosine similarity (when embeddings are configured)
+ * Retrieve candidates using pgvector cosine similarity
  */
-export async function retrieveSemanticCandidates(requirementText) {
-  const queryVector = await generateEmbedding(requirementText);
+export async function retrieveVectorCandidates(requirementText) {
+  const queryVector = await generateRequirementEmbedding(requirementText);
   if (!queryVector || !Array.isArray(queryVector)) {
     return [];
   }
 
-  try {
-    const vectorStr = `[${queryVector.join(",")}]`;
-    const results = await prisma.$queryRaw`
-      SELECT 
-        s.id,
-        s."standardNumber",
-        s.title,
-        s.edition,
-        s.revision,
-        s.status,
-        s.description,
-        s.scope,
-        s.keywords,
-        s."applicableProducts",
-        s.materials,
-        s.applications,
-        1 - (s.embedding <=> ${vectorStr}::vector) AS semantic_similarity
-      FROM standards s
-      WHERE s.embedding IS NOT NULL
-      ORDER BY s.embedding <=> ${vectorStr}::vector
-      LIMIT ${RETRIEVAL_LIMITS.SEMANTIC_LIMIT};
-    `;
+  return await searchSimilarStandards(queryVector, RETRIEVAL_LIMITS.SEMANTIC_LIMIT);
+}
 
-    return results.map((row) => ({
-      ...row,
-      semanticSimilarity: parseFloat(row.semantic_similarity || "0"),
-    }));
-  } catch (error) {
-    console.warn("[RetrievalService] pgvector query skipped or unconfigured:", error.message);
-    return [];
-  }
+// Alias for backwards-compatibility
+export const retrieveSemanticCandidates = retrieveVectorCandidates;
+
+/**
+ * Retrieve candidates using deterministic structured matching
+ */
+export async function retrieveStructuredCandidates(extractedAttributes = {}) {
+  return await matchStructuredStandards(extractedAttributes, RETRIEVAL_LIMITS.KEYWORD_LIMIT);
 }
 
 /**
- * Hybrid Multi-Signal Retrieval
- * Merges keyword and semantic results with deduplication
+ * Hybrid Multi-Signal Candidate Generation & Merging
+ * Merges candidates from:
+ * A. Structured search
+ * B. Lexical search
+ * C. Vector search
+ * Deduplicates by standardId and tracks retrievedBy: string[]
  */
 export async function retrieveCandidates(requirementText, extractedAttributes = {}) {
-  const [keywordResults, semanticResults] = await Promise.all([
-    retrieveKeywordCandidates(requirementText, extractedAttributes),
-    retrieveSemanticCandidates(requirementText),
+  const [structuredResults, lexicalResults, vectorResults] = await Promise.all([
+    retrieveStructuredCandidates(extractedAttributes),
+    retrieveLexicalCandidates(requirementText, extractedAttributes),
+    retrieveVectorCandidates(requirementText),
   ]);
 
   const candidateMap = new Map();
 
-  // Merge Keyword Candidates
-  for (const item of keywordResults) {
-    candidateMap.set(item.id, {
+  // 1. Merge Structured Candidates
+  for (const item of structuredResults) {
+    const stdId = item.id || item.standardId;
+    candidateMap.set(stdId, {
       ...item,
+      id: stdId,
+      standardId: stdId,
+      retrievedBy: ["structured"],
       retrievalSignals: {
-        keywordRank: item.rank ? parseFloat(item.rank) : 0.5,
+        structuredMatch: true,
+        lexicalRank: 0,
         semanticSimilarity: 0,
-        source: ["keyword"],
       },
     });
   }
 
-  // Merge Semantic Candidates
-  for (const item of semanticResults) {
-    if (candidateMap.has(item.id)) {
-      const existing = candidateMap.get(item.id);
-      existing.retrievalSignals.semanticSimilarity = item.semanticSimilarity;
-      existing.retrievalSignals.source.push("semantic");
+  // 2. Merge Lexical Candidates
+  for (const item of lexicalResults) {
+    const stdId = item.id || item.standardId;
+    if (candidateMap.has(stdId)) {
+      const existing = candidateMap.get(stdId);
+      if (!existing.retrievedBy.includes("lexical")) {
+        existing.retrievedBy.push("lexical");
+      }
+      existing.retrievalSignals.lexicalRank = item.retrievalSignals?.lexicalRank || 0.5;
     } else {
-      candidateMap.set(item.id, {
+      candidateMap.set(stdId, {
         ...item,
+        id: stdId,
+        standardId: stdId,
+        retrievedBy: ["lexical"],
         retrievalSignals: {
-          keywordRank: 0,
-          semanticSimilarity: item.semanticSimilarity,
-          source: ["semantic"],
+          structuredMatch: false,
+          lexicalRank: item.retrievalSignals?.lexicalRank || 0.5,
+          semanticSimilarity: 0,
+        },
+      });
+    }
+  }
+
+  // 3. Merge Vector Candidates
+  for (const item of vectorResults) {
+    const stdId = item.id || item.standardId;
+    const similarity = item.retrievalSignals?.semanticSimilarity || item.similarity || 0;
+    if (candidateMap.has(stdId)) {
+      const existing = candidateMap.get(stdId);
+      if (!existing.retrievedBy.includes("vector")) {
+        existing.retrievedBy.push("vector");
+      }
+      existing.retrievalSignals.semanticSimilarity = similarity;
+    } else {
+      candidateMap.set(stdId, {
+        ...item,
+        id: stdId,
+        standardId: stdId,
+        retrievedBy: ["vector"],
+        retrievalSignals: {
+          structuredMatch: false,
+          lexicalRank: 0,
+          semanticSimilarity: similarity,
         },
       });
     }
