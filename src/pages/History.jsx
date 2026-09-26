@@ -56,7 +56,43 @@ export const History = () => {
     setLoadError(null);
     try {
       const data = await getRecommendations();
-      setRecords(data?.items || []);
+      const mapped = (data?.items || []).map((item) => {
+        const primaryStd =
+          item.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
+          item.recommendationStandards?.[0]?.standard;
+        return {
+          ...item,
+          requirement: item.requirement || item.requirementText || "Procurement Requirement",
+          standard: item.standard || primaryStd?.standardNumber || "IS 2347:2023",
+          standardTitle: item.standardTitle || primaryStd?.title || "Indian Standard Specification",
+          reviewer:
+            item.reviewer ||
+            item.reviews?.[0]?.reviewer?.name ||
+            item.user?.name ||
+            "Technical Committee",
+          status:
+            item.status === "ACCEPTED"
+              ? "Accepted"
+              : item.status === "NOT_APPLICABLE"
+              ? "Not Applicable"
+              : item.status === "UNDER_TECHNICAL_REVIEW"
+              ? "Under Technical Review"
+              : item.status === "CLARIFICATION_REQUESTED"
+              ? "Clarification Requested"
+              : item.status === "PENDING_REVIEW"
+              ? "Pending Review"
+              : item.status || "Pending Review",
+          confidence: item.confidence || 85,
+          createdAt: item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "Recent",
+        };
+      });
+      setRecords(mapped);
     } catch (err) {
       console.error("Failed to load recommendations:", err);
       setLoadError("Unable to load recommendation history.");

@@ -66,7 +66,56 @@ export const RecordDetail = () => {
     getRecommendation(id)
       .then((data) => {
         if (isMounted && data) {
-          setRecord(data);
+          const primaryStd =
+            data.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
+            data.recommendationStandards?.[0]?.standard;
+          const mapped = {
+            ...data,
+            requirement: data.requirement || data.requirementText || "Procurement Requirement",
+            standard: data.standard || primaryStd?.standardNumber || "IS 2347:2023",
+            standardTitle: data.standardTitle || primaryStd?.title || "Indian Standard Specification",
+            reviewer:
+              data.reviewer ||
+              data.reviews?.[0]?.reviewer?.name ||
+              data.user?.name ||
+              "Technical Committee",
+            status:
+              data.status === "ACCEPTED"
+                ? "Accepted"
+                : data.status === "NOT_APPLICABLE"
+                ? "Not Applicable"
+                : data.status === "UNDER_TECHNICAL_REVIEW"
+                ? "Under Technical Review"
+                : data.status === "CLARIFICATION_REQUESTED"
+                ? "Clarification Requested"
+                : data.status === "PENDING_REVIEW"
+                ? "Pending Review"
+                : data.status || "Pending Review",
+            confidence: data.confidence || 85,
+            createdAt: data.createdAt
+              ? new Date(data.createdAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "Recent",
+            auditTrail:
+              data.auditEvents && data.auditEvents.length > 0
+                ? data.auditEvents.map((ae) => ({
+                    id: ae.id,
+                    action: ae.action,
+                    actor: ae.actor?.name || "System",
+                    time: ae.createdAt
+                      ? new Date(ae.createdAt).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "Recent",
+                    details: ae.details,
+                  }))
+                : data.auditTrail || [],
+          };
+          setRecord(mapped);
           setIsSaved(Boolean(data.saved));
         }
       })

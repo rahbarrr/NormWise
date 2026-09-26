@@ -77,42 +77,74 @@ export const Results = () => {
           // Map backend record to results view shape
           const baseMock = getMockResultForQuery(apiData.requirement || apiData.requirementText || "Pressure cooker");
           
+          // Extract primary standard from Prisma relation or direct fields
+          const primaryStdObj =
+            apiData.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
+            apiData.recommendationStandards?.[0]?.standard ||
+            apiData.standards?.[0];
+
           // Map alternative standards (Other Possible Matches)
-          const alternativesList = apiData.alternatives && apiData.alternatives.length > 0
-            ? apiData.alternatives
-            : apiData.standards && apiData.standards.length > 1
-            ? apiData.standards.slice(1).map((s) => ({
-                id: s.id,
-                standardId: s.id,
-                standardNumber: s.standardNumber,
-                code: s.standardNumber,
-                title: s.title,
-                status: s.status || "CURRENT",
-                matchConfidence: s.matchConfidence || 75,
-                matchScore: s.matchScore ?? ((s.matchConfidence || 75) / 100),
-                retrievedBy: s.retrievedBy || ["lexical"],
-                reason: s.reason || "Alternative candidate standard",
-              }))
-            : [];
+          const alternativesList =
+            apiData.alternatives && apiData.alternatives.length > 0
+              ? apiData.alternatives
+              : apiData.recommendationStandards && apiData.recommendationStandards.length > 1
+              ? apiData.recommendationStandards
+                  .filter((rs) => !rs.isPrimary)
+                  .map((rs) => ({
+                    id: rs.standard?.id || rs.id,
+                    standardId: rs.standard?.id,
+                    standardNumber: rs.standard?.standardNumber,
+                    code: rs.standard?.standardNumber,
+                    title: rs.standard?.title,
+                    status: rs.standard?.status || "CURRENT",
+                    matchConfidence: rs.matchConfidence || 75,
+                    matchScore: rs.matchScore ?? ((rs.matchConfidence || 75) / 100),
+                    retrievedBy: ["structured", "lexical"],
+                    reason: rs.reason || "Alternative candidate standard",
+                  }))
+              : apiData.standards && apiData.standards.length > 1
+              ? apiData.standards.slice(1).map((s) => ({
+                  id: s.id,
+                  standardId: s.id,
+                  standardNumber: s.standardNumber,
+                  code: s.standardNumber,
+                  title: s.title,
+                  status: s.status || "CURRENT",
+                  matchConfidence: s.matchConfidence || 75,
+                  matchScore: s.matchScore ?? ((s.matchConfidence || 75) / 100),
+                  retrievedBy: s.retrievedBy || ["lexical"],
+                  reason: s.reason || "Alternative candidate standard",
+                }))
+              : [];
 
           // Map evidence if present
-          const mappedEvidence = apiData.evidence && apiData.evidence.length > 0
-            ? apiData.evidence.map((e) => ({
-                id: e.id,
-                category: e.type,
-                clause: e.reference,
-                clauseTitle: e.source,
-                status: e.status || "Verified",
-                excerpt: e.content,
-                relevanceScore: apiData.confidence || 85,
-              }))
-            : baseMock.evidence;
+          const mappedEvidence =
+            apiData.evidence && apiData.evidence.length > 0
+              ? apiData.evidence.map((e) => ({
+                  id: e.id,
+                  category: e.type,
+                  clause: e.reference,
+                  clauseTitle: e.source,
+                  status: e.status || "Verified",
+                  excerpt: e.content,
+                  relevanceScore: apiData.confidence || 85,
+                }))
+              : baseMock.evidence;
 
-          const recStdNumber = apiData.standard || baseMock.recommendedStandard;
+          const recStdNumber =
+            apiData.standard ||
+            primaryStdObj?.standardNumber ||
+            baseMock.recommendedStandard;
+          const recStdTitle =
+            apiData.standardTitle ||
+            primaryStdObj?.title ||
+            baseMock.standardTitle;
+
           const relatedRes = await getRelatedStandards(recStdNumber).catch(() => null);
-          const finalAllied = relatedRes?.relatedStandards && relatedRes.relatedStandards.length > 0
-            ? relatedRes.relatedStandards
-            : baseMock.alliedStandards;
+          const finalAllied =
+            relatedRes?.relatedStandards && relatedRes.relatedStandards.length > 0
+              ? relatedRes.relatedStandards
+              : baseMock.alliedStandards;
 
           // Load compliance evaluation
           const compRes = await getRecommendationCompliance(apiData.id).catch(() => null);
@@ -142,7 +174,7 @@ export const Results = () => {
             normalizedText: apiData.normalizedText || "",
             searchText: apiData.searchText || apiData.normalizedText || "",
             recommendedStandard: recStdNumber,
-            standardTitle: apiData.standardTitle || baseMock.standardTitle,
+            standardTitle: recStdTitle,
             confidence: apiData.confidence || baseMock.confidence,
             matchScore: apiData.matchScore || (apiData.confidence ? apiData.confidence / 100 : 0.94),
             scoreBreakdown: apiData.scoreBreakdown || {
@@ -152,7 +184,11 @@ export const Results = () => {
               technicalScore: 0.70,
               semanticScore: 0.88,
             },
-            currentnessStatus: apiData.currentnessStatus || apiData.standards?.[0]?.status || "CURRENT",
+            currentnessStatus:
+              primaryStdObj?.status ||
+              apiData.currentnessStatus ||
+              apiData.standards?.[0]?.status ||
+              "CURRENT",
             engineVersion: apiData.engineVersion || "hybrid-v1",
             retrievalMethod: apiData.retrievalMethod || "HYBRID",
             clarifyingQuestions: apiData.clarifyingQuestions || (apiData.decisionNotes?.includes("More information is needed") ? [

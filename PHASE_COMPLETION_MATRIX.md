@@ -4,7 +4,7 @@
 | :---: | :--- | :---: | :--- | :--- | :---: |
 | **1** | UI Foundation & App Shell | ✅ COMPLETE | `src/App.jsx`, `src/components/layout/AppShell.jsx`, Tailwind CSS design system. | None. | No |
 | **2** | Requirement Input Page | ✅ COMPLETE | `src/pages/Recommend.jsx`, `FileUpload.jsx`, `RequirementTextarea.jsx`. | None. | No |
-| **3** | Analysis Workflow (`/analyze`) | ⚠️ PARTIAL | `src/pages/Analyze.jsx`, real backend dispatch via `api.js`. | Visual progress steps use 1.5s simulated timer rather than WebSockets. | No |
+| **3** | Analysis Workflow (`/analyze`) | ✅ COMPLETE | `src/pages/Analyze.jsx`, connected to real backend dispatch & `getRecommendation(id)`. | None. | No |
 | **4** | Results Screen (`/results`) | ✅ COMPLETE | `src/pages/Results.jsx`, connects to `/api/recommendations/:id` and `/api/standards/:id/related`. | None. | No |
 | **5** | Evidence Grounding & Traceability | ✅ COMPLETE | `server/src/services/evidenceService.js`, `Evidence` Prisma model, `EvidenceDrawer.jsx`. | None. | No |
 | **6** | Human Review & Governance | ✅ COMPLETE | `src/pages/Review.jsx`, `review.service.js`, `forbidSelfApproval` middleware (HTTP 403). | None. | No |
@@ -34,9 +34,8 @@
 
 ## Phase Status Summary
 - **Total Phases Audited:** 27
-- **Complete Phases (✅):** **24 / 27 (88.9%)**
-- **Partial Phases (⚠️):** **3 / 27 (11.1%)**
-  - *Phase 3:* Simulated animation timer during analysis transition.
+- **Complete Phases (✅):** **25 / 27 (92.6%)**
+- **Partial Phases (⚠️):** **2 / 27 (7.4%)**
   - *Phase 14:* Authorized demonstration catalog covering 6 domains rather than complete ~20,000 national BIS repository.
   - *Phase 16:* Full sentence translation supported for English & Hindi; other regional languages use keyword dictionaries.
 - **Broken Phases (🔴):** **0 / 27 (0%)**

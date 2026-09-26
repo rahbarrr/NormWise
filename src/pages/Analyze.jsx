@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { AnalysisHeader } from "../components/analysis/AnalysisHeader";
 import { AnalysisWorkflow } from "../components/analysis/AnalysisWorkflow";
 import { AnalysisDetails } from "../components/analysis/AnalysisDetails";
@@ -8,9 +8,9 @@ import { CancelAnalysisDialog } from "../components/analysis/CancelAnalysisDialo
 import { AnalysisComplete } from "../components/analysis/AnalysisComplete";
 import { AnalysisError } from "../components/analysis/AnalysisError";
 import { Button } from "../components/ui/Button";
-import { Card, CardContent } from "../components/ui/Card";
 import { FileQuestion, ArrowRight } from "lucide-react";
 import { getAnalysisDataForQuery } from "../data/mockAnalysis";
+import { getRecommendation, runRecommendationEngine } from "../services/api";
 
 export const Analyze = () => {
   const [searchParams] = useSearchParams();
@@ -20,9 +20,17 @@ export const Analyze = () => {
   // Retrieve submitted requirement from URL query or location state
   const queryParam = searchParams.get("q") || location.state?.requirementText;
   const passedAttributes = location.state?.attributes;
+  const recIdFromParam = searchParams.get("id") || location.state?.recommendationId;
 
-  // Analysis data resolved from query / attributes
-  const analysisData = getAnalysisDataForQuery(queryParam || "", passedAttributes);
+  // Real backend record state
+  const [resolvedRecord, setResolvedRecord] = useState(location.state?.apiResult || null);
+  const [activeRecId, setActiveRecId] = useState(recIdFromParam);
+
+  // Fallback preset data
+  const fallbackAnalysisData = useMemo(
+    () => getAnalysisDataForQuery(queryParam || "", passedAttributes),
+    [queryParam, passedAttributes]
+  );
 
   // Workflow states
   const [currentStage, setCurrentStage] = useState(1);
@@ -30,7 +38,38 @@ export const Analyze = () => {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Automated progression through the 5 stages
+  // 1. Fetch real recommendation if ID exists but full result not in state
+  useEffect(() => {
+    let isMounted = true;
+    if (activeRecId && !resolvedRecord) {
+      getRecommendation(activeRecId)
+        .then((data) => {
+          if (isMounted && data) {
+            setResolvedRecord(data);
+          }
+        })
+        .catch((err) => {
+          console.warn("Backend fetch in Analyze deferred to fallback:", err.message);
+        });
+    } else if (!activeRecId && queryParam && !resolvedRecord) {
+      // Trigger background recommendation generation if directly navigated with ?q=
+      runRecommendationEngine(queryParam)
+        .then((res) => {
+          if (isMounted && res) {
+            setResolvedRecord(res);
+            if (res.recommendationId) setActiveRecId(res.recommendationId);
+          }
+        })
+        .catch((err) => {
+          console.warn("Engine execution in Analyze deferred to fallback:", err.message);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [activeRecId, queryParam, resolvedRecord]);
+
+  // 2. Automated progression through the 5 stages
   useEffect(() => {
     if (!queryParam) return;
 
@@ -68,6 +107,63 @@ export const Analyze = () => {
     };
   }, [queryParam]);
 
+  // 3. Compute active analysis data with real backend binding
+  const analysisData = useMemo(() => {
+    if (!resolvedRecord) return fallbackAnalysisData;
+
+    const primaryStd =
+      resolvedRecord.primaryRecommendation?.standardNumber ||
+      resolvedRecord.topCandidate?.standardNumber ||
+      resolvedRecord.recommendationStandards?.find((rs) => rs.isPrimary)?.standard?.standardNumber ||
+      resolvedRecord.recommendationStandards?.[0]?.standard?.standardNumber ||
+      resolvedRecord.standard ||
+      fallbackAnalysisData.recommendedStandard;
+
+    const stdStatus =
+      resolvedRecord.topCandidate?.status ||
+      resolvedRecord.recommendationStandards?.[0]?.standard?.status ||
+      resolvedRecord.status ||
+      "Current";
+
+    const extractedAttrs =
+      resolvedRecord.requirement ||
+      passedAttributes || {
+        product: resolvedRecord.product || fallbackAnalysisData.attributes?.product,
+        material: resolvedRecord.material || fallbackAnalysisData.attributes?.material,
+        capacity: resolvedRecord.capacity || fallbackAnalysisData.attributes?.capacity,
+        application: resolvedRecord.application || fallbackAnalysisData.attributes?.application,
+      };
+
+    const matchesCount =
+      resolvedRecord.candidatesCount ||
+      resolvedRecord.standards?.length ||
+      resolvedRecord.recommendationStandards?.length ||
+      fallbackAnalysisData.potentialMatches;
+
+    const alliedCount =
+      resolvedRecord.alliedStandards?.length ||
+      fallbackAnalysisData.relatedStandards;
+
+    const alliedList =
+      resolvedRecord.alliedStandards?.map((a) =>
+        typeof a === "string"
+          ? { code: a, title: "Allied Standard" }
+          : { code: a.code || a.standardNumber, title: a.title }
+      ) || fallbackAnalysisData.relatedStandardsList;
+
+    return {
+      requirement: queryParam || resolvedRecord.requirementText || fallbackAnalysisData.requirement,
+      attributes: extractedAttrs,
+      potentialMatches: matchesCount,
+      relatedStandards: alliedCount,
+      relatedStandardsList: alliedList,
+      recommendedStandard: primaryStd,
+      currentEdition: primaryStd,
+      status: stdStatus,
+      amendmentChecked: "Yes",
+    };
+  }, [resolvedRecord, queryParam, passedAttributes, fallbackAnalysisData]);
+
   // Handle Cancel Analysis
   const handleConfirmCancel = () => {
     setIsCancelDialogOpen(false);
@@ -76,19 +172,20 @@ export const Analyze = () => {
 
   // Handle View Results
   const handleViewResults = () => {
-    const recId = searchParams.get("id") || location.state?.recommendationId;
+    const finalRecId = activeRecId || resolvedRecord?.id || resolvedRecord?.recommendationId;
     const std = analysisData.recommendedStandard;
     const q = analysisData.requirement;
-    const targetUrl = recId
-      ? `/results?id=${encodeURIComponent(recId)}&standard=${encodeURIComponent(std)}&q=${encodeURIComponent(q)}`
+    const targetUrl = finalRecId
+      ? `/results?id=${encodeURIComponent(finalRecId)}&standard=${encodeURIComponent(std)}&q=${encodeURIComponent(q)}`
       : `/results?standard=${encodeURIComponent(std)}&q=${encodeURIComponent(q)}`;
 
     navigate(targetUrl, {
       state: {
-        recommendationId: recId,
+        recommendationId: finalRecId,
         requirementText: q,
         attributes: analysisData.attributes,
         recommendedStandard: std,
+        apiResult: resolvedRecord,
       },
     });
   };

@@ -96,12 +96,18 @@ export const Review = () => {
     try {
       const rec = await getRecommendation(idParam);
       if (rec) {
+        const primaryStd =
+          rec.recommendationStandards?.find((rs) => rs.isPrimary)?.standard ||
+          rec.recommendationStandards?.[0]?.standard;
+        const stdNumber = rec.standard || primaryStd?.standardNumber || prev.standard;
+        const stdTitle = rec.standardTitle || primaryStd?.title || prev.standardTitle;
+
         setReviewData((prev) => ({
           ...prev,
           id: rec.id,
           requirement: rec.requirement || rec.requirementText || prev.requirement,
-          standard: rec.standard || prev.standard,
-          standardTitle: rec.standardTitle || prev.standardTitle,
+          standard: stdNumber,
+          standardTitle: stdTitle,
           confidence: rec.confidence || prev.confidence,
         }));
         setStatus(rec.status || "Pending Review");
