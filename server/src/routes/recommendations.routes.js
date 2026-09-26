@@ -53,7 +53,6 @@ router.post(
 router.post(
   "/:id/request-review",
   optionalAuth,
-  forbidSelfApproval,
   validate(reviewController.requestReviewSchema),
   reviewController.requestTechnicalReview
 );

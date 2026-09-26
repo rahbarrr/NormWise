@@ -4,10 +4,14 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import apiRouter from "./routes/index.js";
 import env from "./config/env.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 import { csrfProtection } from "./middleware/csrfMiddleware.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
 
 const app = express();
+
+// Request ID and Structured Logging (Phase 19)
+app.use(requestLogger);
 
 // Security Headers (Section 23 & 44)
 app.use(

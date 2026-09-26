@@ -13,7 +13,8 @@ export const recommendSchema = z.object({
 export const handleRecommend = async (req, res, next) => {
   try {
     const rawText = req.body.text || req.body.requirementText;
-    const { userId, language, documentId } = req.body;
+    const userId = req.body.userId || req.user?.id;
+    const { language, documentId } = req.body;
     const isDebug = req.query.debug === "true";
 
     if (!rawText || typeof rawText !== "string" || rawText.trim().length < 5) {

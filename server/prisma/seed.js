@@ -24,15 +24,13 @@ async function main() {
   await prisma.user.deleteMany();
 
   // 1. Seed Users (Phase 18 Security & Test Users)
-  // Dev password hash for "NormWise2026!"
-  const defaultDevHash = "$2a$10$Q7wU4oB05d0lU7g/bZ24A.g17z4p2g/M0N8.h5a0K8k8kY4rX.X2y"; // fallback or compute
   const devPasswordHash = await hashPassword("NormWise2026!");
 
   const officer = await prisma.user.create({
     data: {
       name: "R. K. Sharma",
       email: "officer@normwise.gov.in",
-      passwordHash: defaultDevHash,
+      passwordHash: devPasswordHash,
       role: "PROCUREMENT_OFFICER",
       isActive: true,
     },
@@ -42,7 +40,7 @@ async function main() {
     data: {
       name: "Dr. Ananya Verma",
       email: "reviewer@normwise.gov.in",
-      passwordHash: defaultDevHash,
+      passwordHash: devPasswordHash,
       role: "TECHNICAL_REVIEWER",
       isActive: true,
     },
@@ -52,7 +50,7 @@ async function main() {
     data: {
       name: "NormWise Administrator",
       email: "admin@normwise.gov.in",
-      passwordHash: defaultDevHash,
+      passwordHash: devPasswordHash,
       role: "ADMIN",
       isActive: true,
     },

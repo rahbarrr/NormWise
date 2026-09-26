@@ -63,7 +63,8 @@ export const createOrUpdateReview = async (req, res, next) => {
 export const acceptRecommendation = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const rec = await reviewService.acceptRecommendation(id, req.body);
+    const reviewerId = req.body.reviewerId || req.user?.id;
+    const rec = await reviewService.acceptRecommendation(id, { ...req.body, reviewerId });
     return sendSuccess(res, rec);
   } catch (error) {
     next(error);
@@ -73,7 +74,8 @@ export const acceptRecommendation = async (req, res, next) => {
 export const requestTechnicalReview = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const rec = await reviewService.requestTechnicalReview(id, req.body);
+    const reviewerId = req.body.reviewerId || req.user?.id;
+    const rec = await reviewService.requestTechnicalReview(id, { ...req.body, reviewerId });
     return sendSuccess(res, rec);
   } catch (error) {
     next(error);
@@ -83,7 +85,8 @@ export const requestTechnicalReview = async (req, res, next) => {
 export const requestClarification = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const rec = await reviewService.requestClarification(id, req.body);
+    const reviewerId = req.body.reviewerId || req.user?.id;
+    const rec = await reviewService.requestClarification(id, { ...req.body, reviewerId });
     return sendSuccess(res, rec);
   } catch (error) {
     next(error);
@@ -93,7 +96,8 @@ export const requestClarification = async (req, res, next) => {
 export const markNotApplicable = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const rec = await reviewService.markNotApplicable(id, req.body);
+    const reviewerId = req.body.reviewerId || req.user?.id;
+    const rec = await reviewService.markNotApplicable(id, { ...req.body, reviewerId });
     return sendSuccess(res, rec);
   } catch (error) {
     next(error);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { EvidenceHeader } from "../components/evidence/EvidenceHeader";
 import { RecommendationContext } from "../components/evidence/RecommendationContext";
 import { EvidenceSummary } from "../components/evidence/EvidenceSummary";
@@ -20,10 +20,11 @@ import {
 import { MOCK_EVIDENCE_RECORDS } from "../data/mockEvidence";
 
 export const Evidence = () => {
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const standardParam = searchParams.get("standard") || "IS 2347:2023";
+  const standardParam = id || searchParams.get("standard") || "IS 2347:2023";
 
   // State
   const [evidenceRecords, setEvidenceRecords] = useState(MOCK_EVIDENCE_RECORDS);

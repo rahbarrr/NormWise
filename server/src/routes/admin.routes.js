@@ -1,12 +1,21 @@
 import express from "express";
 import multer from "multer";
 import { standardsImportController } from "../controllers/standardsImport.controller.js";
+import { getSystemHealth } from "../controllers/adminMonitoring.controller.js";
 
 import { requireAuth } from "../middleware/authMiddleware.js";
-import { requirePermission } from "../middleware/authorizationMiddleware.js";
+import { requirePermission, requireRole } from "../middleware/authorizationMiddleware.js";
 import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
+
+// System Health & Monitoring endpoint (Section 19)
+router.get(
+  "/system/health",
+  requireAuth,
+  requireRole("ADMIN"),
+  getSystemHealth
+);
 
 // Configure multer for memory storage (capped at 25MB)
 const upload = multer({

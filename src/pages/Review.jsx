@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation, useParams } from "react-router-dom";
 import { ReviewHeader } from "../components/review/ReviewHeader";
 import { ReviewStatusBar } from "../components/review/ReviewStatusBar";
 import { RecommendationReviewCard } from "../components/review/RecommendationReviewCard";
@@ -39,11 +39,12 @@ import {
 } from "../services/api";
 
 export const Review = () => {
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const idParam = searchParams.get("id") || "REC-2026-0842";
+  const idParam = id || searchParams.get("id") || "REC-2026-0842";
   const standardParam = searchParams.get("standard") || MOCK_REVIEW_DATA.standard;
   const initialActionParam = searchParams.get("action");
 

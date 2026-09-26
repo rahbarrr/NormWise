@@ -1,0 +1,96 @@
+services:
+  # 1. PostgreSQL Database with pgvector extension enabled (Section 5, 6, 7)
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: normwise-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-normwise}
+      POSTGRES_USER: ${POSTGRES_USER:-normwise}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-normwise_secure_password_dev123}
+    volumes:
+      - normwise_pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-normwise} -d ${POSTGRES_DB:-normwise}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - normwise-network
+
+  # 2. Node.js Express Backend API (Section 3, 12, 14)
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: normwise-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 5001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-normwise}:${POSTGRES_PASSWORD:-normwise_secure_password_dev123}@postgres:5432/${POSTGRES_DB:-normwise}?schema=public
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+      AUTH_SECRET: ${AUTH_SECRET:-normwise_production_secret_key_at_least_32_characters_long_min}
+      AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME:-normwise_session}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_COOKIE_SAME_SITE: ${AUTH_COOKIE_SAME_SITE:-lax}
+      UPLOAD_DIR: /app/uploads
+      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-25}
+      APP_VERSION: ${APP_VERSION:-1.0.0-mvp}
+      OCR_ENABLED: ${OCR_ENABLED:-true}
+      VECTOR_CANDIDATE_LIMIT: ${VECTOR_CANDIDATE_LIMIT:-20}
+      LEXICAL_CANDIDATE_LIMIT: ${LEXICAL_CANDIDATE_LIMIT:-30}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - normwise_storage:/app/uploads
+      - normwise_backups:/app/backups
+    ports:
+      - "5001:5001"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:5001/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - normwise-network
+
+  # 3. React Vite SPA served via Nginx (Section 4, 13, 30)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: normwise-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - normwise-network
+
+volumes:
+  normwise_pgdata:
+    name: normwise_pgdata
+  normwise_storage:
+    name: normwise_storage
+  normwise_backups:
+    name: normwise_backups
+
+networks:
+  normwise-network:
+    name: normwise-network
+    driver: bridge

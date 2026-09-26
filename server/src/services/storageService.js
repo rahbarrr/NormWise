@@ -11,8 +11,10 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Uploads directory: server/uploads/
-export const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
+// Uploads directory: configured via UPLOAD_DIR or default server/uploads/
+export const UPLOAD_DIR = process.env.UPLOAD_DIR 
+  ? path.resolve(process.env.UPLOAD_DIR)
+  : path.resolve(__dirname, "../../uploads");
 
 // Ensure upload directory exists on module initialization
 async function ensureUploadDir() {
@@ -23,6 +25,31 @@ async function ensureUploadDir() {
   }
 }
 ensureUploadDir();
+
+/**
+ * Health check: verify upload directory exists, is readable and writable
+ */
+export async function checkStorageHealth() {
+  try {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    const probePath = path.join(UPLOAD_DIR, `.probe_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`);
+    await fs.writeFile(probePath, "normwise_probe", "utf8");
+    await fs.readFile(probePath, "utf8");
+    await fs.unlink(probePath);
+    return {
+      status: "AVAILABLE",
+      writable: true,
+      readable: true,
+    };
+  } catch (err) {
+    return {
+      status: "STORAGE_UNAVAILABLE",
+      writable: false,
+      readable: false,
+      error: err.code || "IO_ERROR",
+    };
+  }
+}
 
 /**
  * Sanitize filename to prevent directory traversal or unsafe chars

@@ -27,11 +27,15 @@ import { AdminData } from "./pages/AdminData";
 import { AdminTerminology } from "./pages/AdminTerminology";
 import { AdminEvaluation } from "./pages/AdminEvaluation";
 import { AdminUsers } from "./pages/AdminUsers";
+import { AdminMonitoring } from "./pages/AdminMonitoring";
 import { SecurityCheck } from "./pages/SecurityCheck";
+import { DemoMode } from "./pages/DemoMode";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 
 function App() {
   return (
-    <BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
       <AuthProvider>
         <Routes>
           {/* Public Auth Route */}
@@ -61,11 +65,22 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+                    <Route path="/demo" element={<DemoMode />} />
                     <Route path="/analyze" element={<Analyze />} />
                     <Route path="/results" element={<Results />} />
+                    <Route path="/results/:id" element={<Results />} />
                     <Route path="/evidence" element={<Evidence />} />
+                    <Route path="/evidence/:id" element={<Evidence />} />
                     <Route
                       path="/review"
+                      element={
+                        <ProtectedRoute allowedRoles={["TECHNICAL_REVIEWER", "ADMIN"]}>
+                          <Review />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/review/:id"
                       element={
                         <ProtectedRoute allowedRoles={["TECHNICAL_REVIEWER", "ADMIN"]}>
                           <Review />
@@ -118,6 +133,14 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/admin/monitoring"
+                      element={
+                        <ProtectedRoute allowedRoles={["ADMIN"]}>
+                          <AdminMonitoring />
+                        </ProtectedRoute>
+                      }
+                    />
 
                     <Route path="/saved" element={<Saved />} />
                     <Route path="/settings" element={<Settings />} />
@@ -133,6 +156,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

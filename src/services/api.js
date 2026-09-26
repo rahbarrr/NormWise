@@ -5,7 +5,7 @@
  */
 import { MOCK_HISTORY_RECORDS, getHistoryItemById } from "../data/mockHistory.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "/api";
 
 function getCookie(name) {
   if (typeof document === "undefined") return null;
@@ -661,6 +661,12 @@ export async function getSecurityCheckApi() {
   const res = await apiRequest("/admin/security/check");
   return res.data;
 }
+
+export async function getSystemHealthApi() {
+  const res = await apiRequest("/admin/system/health");
+  return res;
+}
+
 
 
 

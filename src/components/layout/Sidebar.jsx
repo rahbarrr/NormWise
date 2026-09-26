@@ -22,6 +22,7 @@ import {
   Users,
   LogOut,
   ShieldAlert,
+  Activity,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
 import { useAuth } from "../../context/AuthContext";
@@ -137,6 +138,15 @@ const allNavItems = [
     badge: "Sec",
     badgeVariant: "blue",
     roles: ["ADMIN", "AUDITOR"],
+    section: "reference",
+  },
+  {
+    name: "System Monitoring",
+    path: "/admin/monitoring",
+    icon: Activity,
+    badge: "Ops",
+    badgeVariant: "emerald",
+    roles: ["ADMIN"],
     section: "reference",
   },
   {

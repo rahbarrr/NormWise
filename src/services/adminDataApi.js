@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api/admin";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "/api") + "/admin";
 
 export async function fetchDatasetOverview() {
   const res = await fetch(`${API_BASE}/overview`, {

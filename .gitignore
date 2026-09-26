@@ -30,3 +30,12 @@ dist-ssr
 server/.env
 server/.env*.local
 
+# Storage & Database Backups
+uploads/
+server/uploads/
+backups/
+server/backups/
+*.sql
+*.dump
+
+

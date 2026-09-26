@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation, useParams } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import { RecommendationHeader } from "../components/results/RecommendationHeader";
 import { RequirementSummary } from "../components/results/RequirementSummary";
@@ -34,12 +34,13 @@ import {
 } from "../services/complianceApi";
 
 export const Results = () => {
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Retrieve parameters
-  const idParam = searchParams.get("id") || location.state?.recommendationId;
+  const idParam = id || searchParams.get("id") || location.state?.recommendationId;
   const queryParam = searchParams.get("q") || location.state?.requirementText;
   const passedAttributes = location.state?.attributes;
 
