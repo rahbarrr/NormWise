@@ -178,34 +178,78 @@ export async function recommend(requirementText, options = {}) {
     orderBy: { createdAt: "desc" },
   });
   const datasetVersion = topCandidate.datasetVersion || "2026.09";
-  const importJobId = topCandidate.importJobId || latestImport?.id || null;
+  let importJobId = null;
+  const candidateJobId = topCandidate.importJobId || latestImport?.id;
+  if (candidateJobId) {
+    const jobExists = await prisma.dataImportJob.findUnique({
+      where: { id: candidateJobId },
+      select: { id: true },
+    });
+    if (jobExists) {
+      importJobId = candidateJobId;
+    }
+  }
 
-  const savedRec = await prisma.recommendation.create({
-    data: {
-      userId: defaultUser.id,
-      requirementText: cleanText,
-      originalText: cleanText,
-      detectedLanguage: multilingual.detectedLanguage,
-      originalLanguage: multilingual.originalLanguage,
-      normalizedText: multilingual.normalizedText,
-      translationText: multilingual.searchText !== cleanText ? multilingual.searchText : null,
-      normalizationMethod: multilingual.normalizationMethod,
-      translationMethod: multilingual.translationMethod,
-      product: extracted.product || topCandidate.title,
-      material: extracted.material,
-      capacity: extracted.capacity,
-      application: extracted.application,
-      technicalCharacteristics: extracted.technicalCharacteristics ? extracted.technicalCharacteristics.join(", ") : "",
-      confidence: confidenceScore,
-      status: dbStatus,
-      decisionNotes: statusReason,
-      standardsDatasetVersion: datasetVersion,
-      importJobId: importJobId,
-      engineVersion: "hybrid-v1",
-      retrievalMethod: "HYBRID",
-      embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
-    },
-  });
+  let savedRec;
+  try {
+    savedRec = await prisma.recommendation.create({
+      data: {
+        userId: defaultUser.id,
+        requirementText: cleanText,
+        originalText: cleanText,
+        detectedLanguage: multilingual.detectedLanguage,
+        originalLanguage: multilingual.originalLanguage,
+        normalizedText: multilingual.normalizedText,
+        translationText: multilingual.searchText !== cleanText ? multilingual.searchText : null,
+        normalizationMethod: multilingual.normalizationMethod,
+        translationMethod: multilingual.translationMethod,
+        product: extracted.product || topCandidate.title,
+        material: extracted.material,
+        capacity: extracted.capacity,
+        application: extracted.application,
+        technicalCharacteristics: extracted.technicalCharacteristics ? extracted.technicalCharacteristics.join(", ") : "",
+        confidence: confidenceScore,
+        status: dbStatus,
+        decisionNotes: statusReason,
+        standardsDatasetVersion: datasetVersion,
+        importJobId: importJobId,
+        engineVersion: "hybrid-v1",
+        retrievalMethod: "HYBRID",
+        embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
+      },
+    });
+  } catch (err) {
+    if (err.code === "P2003" && importJobId) {
+      savedRec = await prisma.recommendation.create({
+        data: {
+          userId: defaultUser.id,
+          requirementText: cleanText,
+          originalText: cleanText,
+          detectedLanguage: multilingual.detectedLanguage,
+          originalLanguage: multilingual.originalLanguage,
+          normalizedText: multilingual.normalizedText,
+          translationText: multilingual.searchText !== cleanText ? multilingual.searchText : null,
+          normalizationMethod: multilingual.normalizationMethod,
+          translationMethod: multilingual.translationMethod,
+          product: extracted.product || topCandidate.title,
+          material: extracted.material,
+          capacity: extracted.capacity,
+          application: extracted.application,
+          technicalCharacteristics: extracted.technicalCharacteristics ? extracted.technicalCharacteristics.join(", ") : "",
+          confidence: confidenceScore,
+          status: dbStatus,
+          decisionNotes: statusReason,
+          standardsDatasetVersion: datasetVersion,
+          importJobId: null,
+          engineVersion: "hybrid-v1",
+          retrievalMethod: "HYBRID",
+          embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
+        },
+      });
+    } else {
+      throw err;
+    }
+  }
 
   // 14. Save Candidate Standards into RecommendationStandard
   await prisma.recommendationStandard.create({

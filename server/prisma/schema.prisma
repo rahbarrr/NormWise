@@ -15,6 +15,7 @@ enum Role {
   PROCUREMENT_OFFICER
   TECHNICAL_REVIEWER
   ADMIN
+  AUDITOR
 }
 
 enum StandardStatus {
@@ -90,6 +91,13 @@ enum ComplianceConditionOperator {
 }
 
 enum AuditAction {
+  USER_LOGIN
+  USER_LOGOUT
+  LOGIN_FAILED
+  USER_CREATED
+  USER_DEACTIVATED
+  ROLE_CHANGED
+  PASSWORD_CHANGED
   RECOMMENDATION_CREATED
   EVIDENCE_REVIEWED
   NOTE_ADDED
@@ -106,6 +114,8 @@ enum AuditAction {
   COMPLIANCE_EVALUATED
   COMPLIANCE_VERIFIED
   DATASET_IMPORTED
+  TERMINOLOGY_CHANGED
+  EVALUATION_RUN
 }
 
 enum ImportJobStatus {
@@ -131,18 +141,39 @@ enum ProcessingStatus {
 // ----------------------------------------------------
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  role      Role     @default(PROCUREMENT_OFFICER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String?
+  role         Role      @default(PROCUREMENT_OFFICER)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   recommendations Recommendation[]
   reviews         Review[]
   auditEvents     AuditEvent[]
+  documents       Document[]
+  sessions        Session[]
 
   @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("sessions")
 }
 
 model Standard {
@@ -373,10 +404,12 @@ model Document {
   detectedLanguage       String?
   originalLanguage       String?
   languageConfidence     Float?
+  uploadedById           String?
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
 
   recommendation Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+  uploadedBy     User?           @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 
   @@map("documents")
 }

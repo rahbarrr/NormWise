@@ -19,49 +19,71 @@ import {
   Database,
   Languages,
   BarChart3,
+  Users,
+  LogOut,
+  ShieldAlert,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
+import { useAuth } from "../../context/AuthContext";
 import { cn } from "../../lib/utils";
 
-const mainNavItems = [
+const allNavItems = [
   {
     name: "Dashboard",
     path: "/",
     icon: LayoutDashboard,
     badge: null,
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "main",
   },
   {
     name: "New Recommendation",
     path: "/recommend",
     icon: PlusCircle,
     badge: "New",
+    roles: ["PROCUREMENT_OFFICER", "ADMIN"],
+    section: "main",
   },
   {
     name: "Upload Specification",
     path: "/documents",
     icon: UploadCloud,
     badge: null,
+    roles: ["PROCUREMENT_OFFICER", "ADMIN"],
+    section: "main",
+  },
+  {
+    name: "Review Queue",
+    path: "/review",
+    icon: UserCheck,
+    badge: "Queue",
+    badgeVariant: "amber",
+    roles: ["TECHNICAL_REVIEWER", "ADMIN"],
+    section: "main",
   },
   {
     name: "History",
     path: "/history",
     icon: History,
-    badge: "128",
+    badge: null,
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "main",
   },
   {
     name: "Saved Recommendations",
     path: "/saved",
     icon: BookmarkCheck,
-    badge: "24",
+    badge: null,
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "main",
   },
-];
-
-const referenceNavItems = [
   {
     name: "Evidence Matrix",
     path: "/evidence",
     icon: FileCheck2,
     badge: null,
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "reference",
   },
   {
     name: "Knowledge Graph",
@@ -69,6 +91,8 @@ const referenceNavItems = [
     icon: Network,
     badge: "Allied",
     badgeVariant: "blue",
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "reference",
   },
   {
     name: "Dataset Admin",
@@ -76,6 +100,8 @@ const referenceNavItems = [
     icon: Database,
     badge: "Data",
     badgeVariant: "blue",
+    roles: ["ADMIN"],
+    section: "reference",
   },
   {
     name: "Terminology Review",
@@ -83,6 +109,8 @@ const referenceNavItems = [
     icon: Languages,
     badge: "Indic",
     badgeVariant: "emerald",
+    roles: ["ADMIN"],
+    section: "reference",
   },
   {
     name: "Evaluation Benchmark",
@@ -90,25 +118,42 @@ const referenceNavItems = [
     icon: BarChart3,
     badge: "Eval",
     badgeVariant: "blue",
+    roles: ["ADMIN", "AUDITOR"],
+    section: "reference",
   },
   {
-    name: "Human Review",
-    path: "/review",
-    icon: UserCheck,
-    badge: "7",
-    badgeVariant: "amber",
+    name: "User Management",
+    path: "/admin/users",
+    icon: Users,
+    badge: "Admin",
+    badgeVariant: "purple",
+    roles: ["ADMIN"],
+    section: "reference",
+  },
+  {
+    name: "Security Check",
+    path: "/admin/security",
+    icon: ShieldCheck,
+    badge: "Sec",
+    badgeVariant: "blue",
+    roles: ["ADMIN", "AUDITOR"],
+    section: "reference",
   },
   {
     name: "Help & Standards Docs",
     path: "/help",
     icon: HelpCircle,
     badge: null,
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "reference",
   },
   {
     name: "Settings",
     path: "/settings",
     icon: Settings,
     badge: null,
+    roles: ["PROCUREMENT_OFFICER", "TECHNICAL_REVIEWER", "ADMIN", "AUDITOR"],
+    section: "reference",
   },
 ];
 
@@ -119,6 +164,16 @@ export const Sidebar = ({
   setIsMobileOpen,
 }) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const userRole = (user?.role || "PROCUREMENT_OFFICER").toUpperCase();
+
+  const mainNavItems = allNavItems
+    .filter((i) => i.section === "main")
+    .filter((i) => !i.roles || i.roles.includes(userRole));
+
+  const referenceNavItems = allNavItems
+    .filter((i) => i.section === "reference")
+    .filter((i) => !i.roles || i.roles.includes(userRole));
 
   const handleLinkClick = () => {
     if (isMobileOpen) {
@@ -307,23 +362,37 @@ export const Sidebar = ({
       <div className="p-3 border-t border-slate-800 bg-slate-950/40">
         <div
           className={cn(
-            "flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/60 transition-colors",
+            "flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60 transition-colors",
             isCollapsed && !isMobileOpen && "justify-center p-1"
           )}
         >
-          <div className="w-8 h-8 rounded-full bg-blue-900 border border-blue-700 text-blue-200 font-semibold text-xs flex items-center justify-center shrink-0">
-            {USER_PROFILE.avatarInitials}
+          <div className="w-8 h-8 rounded-full bg-blue-900 border border-blue-700 text-blue-200 font-bold text-xs flex items-center justify-center shrink-0 uppercase">
+            {(user?.name || "NW")
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 2)}
           </div>
 
           {(!isCollapsed || isMobileOpen) && (
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-xs font-semibold text-white truncate">
-                {USER_PROFILE.name}
+                {user?.name || "Procurement Officer"}
               </span>
-              <span className="text-[11px] text-slate-400 truncate">
-                {USER_PROFILE.title}
+              <span className="text-[10px] text-blue-400 font-mono truncate uppercase">
+                {user?.role || "OFFICER"}
               </span>
             </div>
+          )}
+
+          {(!isCollapsed || isMobileOpen) && (
+            <button
+              onClick={() => logout()}
+              title="Sign Out"
+              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-md transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           )}
         </div>
       </div>

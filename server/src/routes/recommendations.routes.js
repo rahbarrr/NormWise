@@ -5,12 +5,14 @@ import * as evidenceController from "../controllers/evidence.controller.js";
 import * as auditController from "../controllers/audit.controller.js";
 import { complianceController } from "../controllers/compliance.controller.js";
 import { validate } from "../middleware/validate.middleware.js";
+import { optionalAuth } from "../middleware/authMiddleware.js";
+import { forbidSelfApproval } from "../middleware/authorizationMiddleware.js";
 
 const router = Router();
 
 // Recommendation Core
-router.get("/", recController.getRecommendations);
-router.get("/:id", recController.getRecommendationById);
+router.get("/", optionalAuth, recController.getRecommendations);
+router.get("/:id", optionalAuth, recController.getRecommendationById);
 router.post(
   "/",
   validate(recController.createRecommendationSchema),
@@ -40,24 +42,32 @@ router.patch(
   reviewController.createOrUpdateReview
 );
 
-// Decision Endpoints
+// Decision Endpoints (Role & self-approval guardrails)
 router.post(
   "/:id/accept",
+  optionalAuth,
+  forbidSelfApproval,
   validate(reviewController.acceptSchema),
   reviewController.acceptRecommendation
 );
 router.post(
   "/:id/request-review",
+  optionalAuth,
+  forbidSelfApproval,
   validate(reviewController.requestReviewSchema),
   reviewController.requestTechnicalReview
 );
 router.post(
   "/:id/request-clarification",
+  optionalAuth,
+  forbidSelfApproval,
   validate(reviewController.requestClarificationSchema),
   reviewController.requestClarification
 );
 router.post(
   "/:id/not-applicable",
+  optionalAuth,
+  forbidSelfApproval,
   validate(reviewController.notApplicableSchema),
   reviewController.markNotApplicable
 );

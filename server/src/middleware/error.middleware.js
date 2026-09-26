@@ -22,7 +22,11 @@ export const errorHandler = (err, req, res, next) => {
 
   // Generic fallback
   const statusCode = err.statusCode || 500;
-  const message = err.message || "An unexpected internal server error occurred.";
+  const isProd = process.env.NODE_ENV === "production";
+  const message = isProd && statusCode === 500
+    ? "An unexpected internal server error occurred."
+    : (err.message || "An unexpected internal server error occurred.");
+
   return sendError(res, message, statusCode);
 };
 

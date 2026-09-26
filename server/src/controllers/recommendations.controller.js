@@ -37,6 +37,19 @@ export const getRecommendationById = async (req, res, next) => {
     if (!rec) {
       return sendError(res, `Recommendation not found for ID: ${id}`, 404);
     }
+
+    // Ownership check (Section 14): Prevent unauthorized access to other officers' private records
+    if (req.user && req.user.role === "PROCUREMENT_OFFICER") {
+      if (rec.userId && rec.userId !== req.user.id) {
+        return res.status(403).json({
+          error: {
+            code: "FORBIDDEN",
+            message: "You do not have permission to access another user's private recommendation.",
+          },
+        });
+      }
+    }
+
     return sendSuccess(res, rec);
   } catch (error) {
     next(error);

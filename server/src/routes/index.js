@@ -7,6 +7,8 @@ import adminRoutes from "./admin.routes.js";
 import languageRoutes from "./language.routes.js";
 import terminologyRoutes from "./terminology.routes.js";
 import evaluationRoutes from "./evaluation.routes.js";
+import authRoutes from "./auth.routes.js";
+import userRoutes from "./user.routes.js";
 import { handleRecommend } from "../controllers/recommendEngine.controller.js";
 
 const apiRouter = Router();
@@ -33,7 +35,9 @@ apiRouter.use("/recommendations", recommendationsRoutes);
 apiRouter.use("/documents", documentsRoutes);
 apiRouter.use("/compliance", complianceRoutes);
 apiRouter.use("/admin/evaluation", evaluationRoutes);
-apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/admin/terminology", terminologyRoutes);
+apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/admin", userRoutes);
+apiRouter.use("/auth", authRoutes);
 
 export default apiRouter;

@@ -2,6 +2,10 @@ import express from "express";
 import multer from "multer";
 import { standardsImportController } from "../controllers/standardsImport.controller.js";
 
+import { requireAuth } from "../middleware/authMiddleware.js";
+import { requirePermission } from "../middleware/authorizationMiddleware.js";
+import { PERMISSIONS } from "../config/permissions.js";
+
 const router = express.Router();
 
 // Configure multer for memory storage (capped at 25MB)
@@ -21,14 +25,21 @@ const upload = multer({
   },
 });
 
-// Admin Import Routes
+// Admin Import Routes (Protected with DATASET_IMPORT permission)
 router.post(
   "/standards/import",
+  requireAuth,
+  requirePermission(PERMISSIONS.DATASET_IMPORT),
   upload.single("file"),
   standardsImportController.handleImport
 );
 
-router.post("/standards/validate", standardsImportController.validate);
+router.post(
+  "/standards/validate",
+  requireAuth,
+  requirePermission(PERMISSIONS.DATASET_IMPORT),
+  standardsImportController.validate
+);
 
 router.get("/imports", standardsImportController.getImports);
 router.get("/imports/:id", standardsImportController.getImportById);

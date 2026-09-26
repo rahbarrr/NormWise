@@ -7,6 +7,12 @@ import { MOCK_HISTORY_RECORDS, getHistoryItemById } from "../data/mockHistory.js
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+function getCookie(name) {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]*)"));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
 /**
  * Core HTTP Request Wrapper
  */
@@ -19,8 +25,18 @@ export async function apiRequest(endpoint, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
+  // Attach CSRF token on state-changing requests if cookie exists
+  const method = (options.method || "GET").toUpperCase();
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method) && !headers["X-CSRF-Token"]) {
+    const csrfToken = getCookie("normwise_csrf");
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
   try {
     const response = await fetch(url, {
+      credentials: "include",
       ...options,
       headers,
     });
@@ -582,5 +598,69 @@ export async function evaluateSingleCaseApi(casePayload) {
   });
   return res.result;
 }
+
+// ==========================================
+// Phase 18: Authentication & Security APIs
+// ==========================================
+
+export async function loginApi({ email, password }) {
+  const res = await apiRequest("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+  return res.data;
+}
+
+export async function logoutApi() {
+  const res = await apiRequest("/auth/logout", {
+    method: "POST",
+  });
+  return res;
+}
+
+export async function getMeApi() {
+  const res = await apiRequest("/auth/me");
+  return res.data;
+}
+
+export async function getCsrfTokenApi() {
+  const res = await apiRequest("/auth/csrf");
+  return res.data;
+}
+
+export async function changePasswordApi({ currentPassword, newPassword, revokeOtherSessions = false }) {
+  const res = await apiRequest("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword, revokeOtherSessions }),
+  });
+  return res.data;
+}
+
+export async function listUsersApi() {
+  const res = await apiRequest("/admin/users");
+  return res.data;
+}
+
+export async function updateUserRoleApi(userId, role) {
+  const res = await apiRequest(`/admin/users/${userId}/role`, {
+    method: "PUT",
+    body: JSON.stringify({ role }),
+  });
+  return res.data;
+}
+
+export async function updateUserStatusApi(userId, isActive) {
+  const res = await apiRequest(`/admin/users/${userId}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ isActive }),
+  });
+  return res.data;
+}
+
+export async function getSecurityCheckApi() {
+  const res = await apiRequest("/admin/security/check");
+  return res.data;
+}
+
 
 
