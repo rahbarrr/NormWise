@@ -57,6 +57,7 @@ export async function recommend(requirementText, options = {}) {
         technicalCharacteristics: extracted.technicalCharacteristics.join(", "),
         confidence: 0,
         status: "NOT_APPLICABLE",
+        standardsDatasetVersion: "2026.09",
       },
     });
 
@@ -161,6 +162,14 @@ export async function recommend(requirementText, options = {}) {
       ? "CLARIFICATION_REQUESTED"
       : "UNDER_TECHNICAL_REVIEW";
 
+  // Trace dataset version & provenance
+  const latestImport = await prisma.dataImportJob.findFirst({
+    where: { status: { in: ["COMPLETED", "COMPLETED_WITH_ERRORS"] } },
+    orderBy: { createdAt: "desc" },
+  });
+  const datasetVersion = topCandidate.datasetVersion || "2026.09";
+  const importJobId = topCandidate.importJobId || latestImport?.id || null;
+
   const savedRec = await prisma.recommendation.create({
     data: {
       userId: defaultUser.id,
@@ -173,6 +182,8 @@ export async function recommend(requirementText, options = {}) {
       confidence: confidenceScore,
       status: dbStatus,
       decisionNotes: statusReason,
+      standardsDatasetVersion: datasetVersion,
+      importJobId: importJobId,
     },
   });
 
@@ -277,6 +288,10 @@ export async function recommend(requirementText, options = {}) {
     compliance,
     evidence,
     explanation,
+    datasetProvenance: {
+      standardsDatasetVersion: datasetVersion,
+      importJobId: importJobId,
+    },
   };
 }
 

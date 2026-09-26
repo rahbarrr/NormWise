@@ -15,6 +15,7 @@ import { Settings } from "./pages/Settings";
 import { Help } from "./pages/Help";
 import { StandardDetail } from "./pages/StandardDetail";
 import { KnowledgeGraph } from "./pages/KnowledgeGraph";
+import { AdminData } from "./pages/AdminData";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/history/:id" element={<RecordDetail />} />
           <Route path="/standards/:id" element={<StandardDetail />} />
           <Route path="/knowledge" element={<KnowledgeGraph />} />
+          <Route path="/admin/data" element={<AdminData />} />
           <Route path="/saved" element={<Saved />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/help" element={<Help />} />

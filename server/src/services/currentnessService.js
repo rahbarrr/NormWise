@@ -40,6 +40,7 @@ export async function validateCurrentness(standardId) {
   const isSuperseded = standard.status === "SUPERSEDED";
   const isWithdrawn = standard.status === "WITHDRAWN";
   const isUnderReview = standard.status === "UNDER_REVIEW";
+  const isUnknown = standard.status === "UNKNOWN";
 
   // Check if there is a known successor standard
   const successor = standard.relatedStandards?.[0]?.relatedStandard || null;
@@ -58,6 +59,9 @@ export async function validateCurrentness(standardId) {
   } else if (isUnderReview) {
     notice = "UNDER REVIEW: Sectional technical committee is currently evaluating amendments.";
     canProceedAsPrimary = true;
+  } else if (isUnknown) {
+    notice = "Currentness could not be established from the available source data.";
+    canProceedAsPrimary = false;
   }
 
   return {

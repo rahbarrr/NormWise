@@ -152,6 +152,9 @@ export function scoreCandidate(candidate, extractedAttributes = {}, requirementT
     finalScore = finalScore * 0.40; // Severe penalty for withdrawn standards
   } else if (candidate.status === "UNDER_REVIEW") {
     warnings.push(`Standard ${candidate.standardNumber} is currently undergoing technical committee review.`);
+  } else if (candidate.status === "UNKNOWN") {
+    warnings.push(`Standard ${candidate.standardNumber} currentness could not be established from available source data.`);
+    finalScore = finalScore * 0.85; // Deprioritize unverified status compared to CURRENT
   }
 
   // Bound score between 0.00 and 0.99

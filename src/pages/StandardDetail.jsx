@@ -15,6 +15,7 @@ import {
   Building2,
   Box,
   CheckCircle2,
+  Database,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -221,6 +222,30 @@ export const StandardDetail = () => {
             <span className="text-[11px] font-mono text-slate-500">Authoritative BIS Index</span>
           </div>
         )}
+
+        {/* Data Quality Warnings */}
+        {(standard.status === "UNKNOWN" || !standard.scope || !standard.sourceName) && (
+          <div className="px-6 py-3 bg-amber-50/80 border-b border-amber-200/60 text-xs text-amber-900 space-y-1">
+            {standard.status === "UNKNOWN" && (
+              <p className="flex items-center gap-1.5 font-medium">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                Currentness could not be established from the available source data.
+              </p>
+            )}
+            {!standard.scope && (
+              <p className="flex items-center gap-1.5 text-slate-600">
+                <Info className="w-3.5 h-3.5 text-slate-500" />
+                Scope information unavailable.
+              </p>
+            )}
+            {!standard.sourceName && (
+              <p className="flex items-center gap-1.5 text-slate-600">
+                <Info className="w-3.5 h-3.5 text-slate-500" />
+                Source information unavailable.
+              </p>
+            )}
+          </div>
+        )}
       </Card>
 
       {/* Main Grid: Overview + Relationship Summary */}
@@ -413,6 +438,36 @@ export const StandardDetail = () => {
 
         {/* RIGHT COLUMN: Relationship Summary & Graph Quick Links (lg:col-span-4) */}
         <div className="lg:col-span-4 space-y-6">
+          {/* DATA SOURCE PROVENANCE (Phase 14) */}
+          <Card className="border-slate-200/90 shadow-2xs">
+            <CardHeader className="pb-3 border-b border-slate-100">
+              <CardTitle className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-primary-700" />
+                <span>Data Source Provenance</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-3 pb-4 space-y-2.5 text-xs">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500">Source:</span>
+                <span className="font-medium text-slate-900 truncate max-w-[180px]">{standard.sourceName || "Source information unavailable."}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500">Dataset Version:</span>
+                <span className="font-mono text-slate-800 font-semibold">{standard.datasetVersion || "2026.09"}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500">Imported / Cataloged:</span>
+                <span className="font-mono text-slate-700 text-[11px]">{standard.createdAt ? new Date(standard.createdAt).toLocaleDateString("en-GB") : "Catalog Baseline"}</span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500">Demo Record:</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${standard.isDemo ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-emerald-100 text-emerald-800 border border-emerald-200"}`}>
+                  {standard.isDemo ? "DEMO DATA" : "SOURCE DATA"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Section 2: Relationship Summary Card */}
           <Card className="border-slate-200/90 shadow-2xs">
             <CardHeader className="pb-3 border-b border-slate-100">

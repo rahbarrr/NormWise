@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
+    "import:standards": "node bin/import-standards.js",
     "test": "node --test tests/**/*.test.js"
   },
   "prisma": {
@@ -27,6 +28,7 @@
     "multer": "^2.4.0",
     "pdf-parse": "^2.4.5",
     "tesseract.js": "^7.0.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

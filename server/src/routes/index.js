@@ -3,6 +3,7 @@ import standardsRoutes from "./standards.routes.js";
 import recommendationsRoutes from "./recommendations.routes.js";
 import documentsRoutes from "./documents.routes.js";
 import complianceRoutes from "./compliance.routes.js";
+import adminRoutes from "./admin.routes.js";
 import { handleRecommend } from "../controllers/recommendEngine.controller.js";
 
 const apiRouter = Router();
@@ -25,5 +26,6 @@ apiRouter.use("/standards", standardsRoutes);
 apiRouter.use("/recommendations", recommendationsRoutes);
 apiRouter.use("/documents", documentsRoutes);
 apiRouter.use("/compliance", complianceRoutes);
+apiRouter.use("/admin", adminRoutes);
 
 export default apiRouter;

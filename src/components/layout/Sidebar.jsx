@@ -16,6 +16,7 @@ import {
   ExternalLink,
   UploadCloud,
   Network,
+  Database,
 } from "lucide-react";
 import { USER_PROFILE } from "../../data/mockData";
 import { cn } from "../../lib/utils";
@@ -65,6 +66,13 @@ const referenceNavItems = [
     path: "/knowledge",
     icon: Network,
     badge: "Allied",
+    badgeVariant: "blue",
+  },
+  {
+    name: "Dataset Admin",
+    path: "/admin/data",
+    icon: Database,
+    badge: "Data",
     badgeVariant: "blue",
   },
   {

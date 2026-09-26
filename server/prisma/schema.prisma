@@ -105,6 +105,15 @@ enum AuditAction {
   RECOMMENDATION_STARTED
   COMPLIANCE_EVALUATED
   COMPLIANCE_VERIFIED
+  DATASET_IMPORTED
+}
+
+enum ImportJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
 }
 
 enum ProcessingStatus {
@@ -137,14 +146,25 @@ model User {
 }
 
 model Standard {
-  id             String         @id @default(uuid())
-  standardNumber String         @unique
-  title          String
-  edition        String?
-  revision       String?
-  status         StandardStatus @default(CURRENT)
+  id                 String         @id @default(uuid())
+  standardNumber     String         @unique
+  title              String
+  shortTitle         String?
+  edition            String?
+  revision           String?
+  publicationDate    DateTime?
+  status             StandardStatus @default(CURRENT)
+  category           String?
+  technicalDomain    String?
   description        String?        @db.Text
   scope              String?        @db.Text
+  language           String?        @default("en")
+  sourceName         String         @default("Authorized Dataset")
+  sourceReference    String?
+  sourceUrl          String?
+  isDemo             Boolean        @default(false)
+  datasetVersion     String?
+  importJobId        String?
   keywords           String[]       @default([])
   applicableProducts String[]       @default([])
   materials          String[]       @default([])
@@ -153,6 +173,7 @@ model Standard {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
+  importJob               DataImportJob?           @relation(fields: [importJobId], references: [id], onDelete: SetNull)
   amendments              StandardAmendment[]
   recommendationStandards RecommendationStandard[]
   evidences               Evidence[]
@@ -160,6 +181,10 @@ model Standard {
   referencedBy            RelatedStandard[]        @relation("RelatedToStandard")
   complianceRules         ComplianceRule[]
 
+  @@index([standardNumber])
+  @@index([category])
+  @@index([status])
+  @@index([technicalDomain])
   @@map("standards")
 }
 
@@ -168,7 +193,9 @@ model StandardAmendment {
   standardId      String
   amendmentNumber String
   date            DateTime?
+  effectiveDate   DateTime?
   description     String?
+  sourceReference String?
   status          String?   @default("ACTIVE")
   createdAt       DateTime  @default(now())
 
@@ -192,10 +219,13 @@ model Recommendation {
   archived                 Boolean              @default(false)
   department               String?
   decisionNotes            String?              @db.Text
+  standardsDatasetVersion  String?
+  importJobId              String?
   createdAt                DateTime             @default(now())
   updatedAt                DateTime             @updatedAt
 
   user                    User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  importJob               DataImportJob?           @relation(fields: [importJobId], references: [id], onDelete: SetNull)
   recommendationStandards RecommendationStandard[]
   evidence                Evidence[]
   reviews                 Review[]
@@ -402,4 +432,62 @@ model ComplianceEvaluation {
 
   @@map("compliance_evaluations")
 }
+
+model DataImportJob {
+  id              String          @id @default(uuid())
+  sourceName      String
+  sourceType      String          @default("CSV")
+  datasetVersion  String?
+  filename        String?
+  status          ImportJobStatus @default(PENDING)
+  recordsRead     Int             @default(0)
+  recordsCreated  Int             @default(0)
+  recordsUpdated  Int             @default(0)
+  recordsSkipped  Int             @default(0)
+  recordsFailed   Int             @default(0)
+  errorSummary    Json?
+  report          Json?
+  isDryRun        Boolean         @default(false)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime        @default(now())
+
+  importedRecords ImportedStandardRecord[]
+  standards       Standard[]
+  recommendations Recommendation[]
+
+  @@map("data_import_jobs")
+}
+
+model ImportedStandardRecord {
+  id                   String         @id @default(uuid())
+  importJobId          String
+  rawIdentifier        String
+  normalizedIdentifier String?
+  rawTitle             String?
+  rawData              Json
+  validationStatus     String         @default("VALID")
+  validationError      String?        @db.Text
+  createdAt            DateTime       @default(now())
+
+  importJob DataImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+
+  @@index([importJobId])
+  @@index([normalizedIdentifier])
+  @@map("imported_standard_records")
+}
+
+model StandardTerm {
+  id               String   @id @default(uuid())
+  term             String
+  normalizedTerm   String
+  category         String?
+  sourceStandardId String?
+  createdAt        DateTime @default(now())
+
+  @@unique([normalizedTerm, category])
+  @@index([normalizedTerm])
+  @@map("standard_terms")
+}
+
 

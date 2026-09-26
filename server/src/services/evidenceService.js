@@ -15,6 +15,7 @@ export async function collectEvidenceForStandard(standardId) {
   const evidenceRecords = await prisma.evidence.findMany({
     where: { standardId },
     orderBy: { createdAt: "asc" },
+    take: 10,
   });
 
   if (evidenceRecords.length > 0) {
