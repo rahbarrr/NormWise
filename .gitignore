@@ -35,7 +35,17 @@ uploads/
 server/uploads/
 backups/
 server/backups/
-*.sql
 *.dump
 
+# Temporary files and generated output
+tmp/
+output/
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/

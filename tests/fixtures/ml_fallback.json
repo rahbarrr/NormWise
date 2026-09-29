@@ -1,0 +1,18 @@
+{
+  "description": "ML Service unavailable or timeout scenario - graceful fallback to hybrid scoring",
+  "input": {
+    "query": "Stainless steel pressure cooker 5L",
+    "candidates": [
+      {
+        "id": "std-001",
+        "standard_number": "IS 2347:2023",
+        "title": "Domestic Pressure Cookers - Specification",
+        "initial_score": 0.88
+      }
+    ]
+  },
+  "behavior": {
+    "onMlFailure": "FALLBACK_TO_STRUCTURED_RANKER",
+    "serviceContinues": true
+  }
+}

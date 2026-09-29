@@ -1,0 +1,640 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// Enums
+// ----------------------------------------------------
+
+enum Role {
+  PROCUREMENT_OFFICER
+  TECHNICAL_REVIEWER
+  ADMIN
+  AUDITOR
+}
+
+enum StandardStatus {
+  CURRENT
+  SUPERSEDED
+  WITHDRAWN
+  UNDER_REVIEW
+  UNKNOWN
+}
+
+enum RecommendationStatus {
+  PENDING_REVIEW
+  ACCEPTED
+  UNDER_TECHNICAL_REVIEW
+  CLARIFICATION_REQUESTED
+  NOT_APPLICABLE
+}
+
+enum EvidenceType {
+  SCOPE
+  REQUIREMENT
+  MATERIAL
+  CERTIFICATION
+  CURRENTNESS
+  RELATED_STANDARD
+  TEST_METHOD
+}
+
+enum RelationshipType {
+  NORMATIVE_REFERENCE
+  TERMINOLOGY
+  TEST_METHOD
+  SAFETY
+  INSTALLATION
+  EQUIVALENT
+  SUPERSEDED_BY
+  AMENDED_BY
+  MANDATORY_UNDER
+  APPLIES_TO
+  COMPONENT
+  MATERIAL
+  OTHER
+}
+
+enum ReviewStatus {
+  PENDING
+  ACCEPTED
+  TECHNICAL_REVIEW
+  CLARIFICATION_REQUESTED
+  NOT_APPLICABLE
+}
+
+enum RuleStatus {
+  ACTIVE
+  INACTIVE
+  UNKNOWN
+}
+
+enum ComplianceOutcome {
+  POTENTIALLY_APPLICABLE
+  NOT_IDENTIFIED
+  REQUIRES_REVIEW
+  INSUFFICIENT_EVIDENCE
+  UNKNOWN
+}
+
+enum ComplianceConditionOperator {
+  EQUALS
+  CONTAINS
+  MATCHES
+  IN
+  NOT_EQUALS
+}
+
+enum AuditAction {
+  USER_LOGIN
+  USER_LOGOUT
+  LOGIN_FAILED
+  USER_CREATED
+  USER_DEACTIVATED
+  ROLE_CHANGED
+  PASSWORD_CHANGED
+  RECOMMENDATION_CREATED
+  EVIDENCE_REVIEWED
+  NOTE_ADDED
+  REVIEW_REQUESTED
+  CLARIFICATION_REQUESTED
+  RECOMMENDATION_ACCEPTED
+  MARKED_NOT_APPLICABLE
+  DRAFT_SAVED
+  DOCUMENT_UPLOADED
+  DOCUMENT_PROCESSED
+  REQUIREMENTS_EXTRACTED
+  REQUIREMENTS_EDITED
+  RECOMMENDATION_STARTED
+  COMPLIANCE_EVALUATED
+  COMPLIANCE_VERIFIED
+  DATASET_IMPORTED
+  TERMINOLOGY_CHANGED
+  EVALUATION_RUN
+}
+
+enum ImportJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+}
+
+enum ProcessingStatus {
+  UPLOADED
+  PROCESSING
+  TEXT_EXTRACTED
+  REQUIREMENTS_EXTRACTED
+  PROCESSED
+  COMPLETED
+  FAILED
+}
+
+// ----------------------------------------------------
+// Models
+// ----------------------------------------------------
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String?
+  role         Role      @default(PROCUREMENT_OFFICER)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  recommendations Recommendation[]
+  reviews         Review[]
+  auditEvents     AuditEvent[]
+  documents       Document[]
+  sessions        Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("sessions")
+}
+
+model Standard {
+  id                 String         @id @default(uuid())
+  standardNumber     String         @unique
+  title              String
+  shortTitle         String?
+  edition            String?
+  revision           String?
+  publicationDate    DateTime?
+  status             StandardStatus @default(CURRENT)
+  category           String?
+  technicalDomain    String?
+  description        String?        @db.Text
+  scope              String?        @db.Text
+  language           String?        @default("en")
+  sourceName         String         @default("Authorized Dataset")
+  sourceReference    String?
+  sourceUrl          String?
+  isDemo             Boolean        @default(false)
+  datasetVersion     String?
+  importJobId        String?
+  keywords           String[]       @default([])
+  applicableProducts String[]       @default([])
+  materials          String[]       @default([])
+  applications       String[]       @default([])
+  // embedding field removed - pgvector extension not available on this system
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  importJob               DataImportJob?           @relation(fields: [importJobId], references: [id], onDelete: SetNull)
+  amendments              StandardAmendment[]
+  recommendationStandards RecommendationStandard[]
+  evidences               Evidence[]
+  relatedStandards        RelatedStandard[]        @relation("StandardToRelated")
+  referencedBy            RelatedStandard[]        @relation("RelatedToStandard")
+  complianceRules         ComplianceRule[]
+  standardEmbedding       StandardEmbedding?
+  terms                   StandardTerm[]
+
+  @@index([standardNumber])
+  @@index([category])
+  @@index([status])
+  @@index([technicalDomain])
+  @@map("standards")
+}
+
+model StandardAmendment {
+  id              String    @id @default(uuid())
+  standardId      String
+  amendmentNumber String
+  date            DateTime?
+  effectiveDate   DateTime?
+  description     String?
+  sourceReference String?
+  status          String?   @default("ACTIVE")
+  createdAt       DateTime  @default(now())
+
+  standard Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@map("standard_amendments")
+}
+
+model Recommendation {
+  id                       String               @id @default(uuid())
+  userId                   String?
+  requirementText          String               @db.Text
+  product                  String?
+  material                 String?
+  capacity                 String?
+  application              String?
+  technicalCharacteristics String?              @db.Text
+  confidence               Int                  @default(85)
+  status                   RecommendationStatus @default(PENDING_REVIEW)
+  saved                    Boolean              @default(false)
+  archived                 Boolean              @default(false)
+  department               String?
+  decisionNotes            String?              @db.Text
+  standardsDatasetVersion  String?
+  importJobId              String?
+  engineVersion            String?              @default("hybrid-v1")
+  retrievalMethod          String?              @default("HYBRID")
+  embeddingModel           String?
+  originalText             String?              @db.Text
+  detectedLanguage         String?              @default("EN")
+  originalLanguage         String?              @default("EN")
+  normalizedText           String?              @db.Text
+  translationText          String?              @db.Text
+  normalizationMethod      String?              @default("DETERMINISTIC")
+  translationMethod        String?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  user                    User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  importJob               DataImportJob?           @relation(fields: [importJobId], references: [id], onDelete: SetNull)
+  recommendationStandards RecommendationStandard[]
+  evidence                Evidence[]
+  reviews                 Review[]
+  documents               Document[]
+  auditEvents             AuditEvent[]
+  complianceEvaluations   ComplianceEvaluation[]
+
+  @@map("recommendations")
+}
+
+model RecommendationStandard {
+  id               String   @id @default(uuid())
+  recommendationId String
+  standardId       String
+  matchConfidence  Int      @default(90)
+  matchScore       Float?   @default(0.90)
+  productScore     Float?
+  applicationScore Float?
+  materialScore    Float?
+  technicalScore   Float?
+  semanticScore    Float?
+  retrievedBy      String[] @default([])
+  reason           String?  @db.Text
+  isPrimary        Boolean  @default(false)
+
+  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  standard       Standard       @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@unique([recommendationId, standardId])
+  @@map("recommendation_standards")
+}
+
+model Evidence {
+  id               String       @id @default(uuid())
+  recommendationId String
+  standardId       String?
+  type             EvidenceType @default(SCOPE)
+  reference        String
+  content          String       @db.Text
+  source           String
+  status           String       @default("Available")
+  createdAt        DateTime     @default(now())
+
+  recommendation        Recommendation         @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  standard              Standard?              @relation(fields: [standardId], references: [id], onDelete: SetNull)
+  relatedStandards      RelatedStandard[]
+  complianceEvidences   ComplianceEvidence[]
+  complianceEvaluations ComplianceEvaluation[]
+
+  @@map("evidence")
+}
+
+model RelatedStandard {
+  id                String           @id @default(uuid())
+  standardId        String
+  relatedStandardId String
+  relationshipType  RelationshipType @default(NORMATIVE_REFERENCE)
+  evidenceId        String?
+  notes             String?          @db.Text
+  status            String           @default("DEMO")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @default(now()) @updatedAt
+
+  standard        Standard  @relation("StandardToRelated", fields: [standardId], references: [id], onDelete: Cascade)
+  relatedStandard Standard  @relation("RelatedToStandard", fields: [relatedStandardId], references: [id], onDelete: Cascade)
+  evidence        Evidence? @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+
+  @@unique([standardId, relatedStandardId, relationshipType])
+  @@index([standardId])
+  @@index([relatedStandardId])
+  @@index([relationshipType])
+  @@map("related_standards")
+}
+
+model Review {
+  id               String       @id @default(uuid())
+  recommendationId String
+  reviewerId       String?
+  status           ReviewStatus @default(PENDING)
+  notes            String?      @db.Text
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  recommendation Recommendation    @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  reviewer       User?             @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  checklist      ReviewChecklist[]
+
+  @@map("reviews")
+}
+
+model ReviewChecklist {
+  id        String  @id @default(uuid())
+  reviewId  String
+  itemKey   String
+  label     String
+  completed Boolean @default(false)
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, itemKey])
+  @@map("review_checklists")
+}
+
+model AuditEvent {
+  id               String          @id @default(uuid())
+  recommendationId String?
+  actorId          String?
+  action           AuditAction
+  details          String          @db.Text
+  createdAt        DateTime        @default(now())
+
+  recommendation   Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  actor            User?           @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@map("audit_events")
+}
+
+model Document {
+  id                     String           @id @default(uuid())
+  recommendationId       String?
+  filename               String
+  originalFilename       String?
+  fileType               String
+  fileSize               String
+  storagePath            String?
+  pageCount              Int              @default(1)
+  processingStatus       ProcessingStatus @default(UPLOADED)
+  processingError        String?          @db.Text
+  extractedText          String?          @db.Text
+  extractionMethod       String?
+  textExtractionQuality  String?
+  extractedRequirements  Json?
+  detectedLanguage       String?
+  originalLanguage       String?
+  languageConfidence     Float?
+  uploadedById           String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  recommendation Recommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+  uploadedBy     User?           @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@map("documents")
+}
+
+model ComplianceRule {
+  id              String            @id @default(uuid())
+  name            String
+  description     String?           @db.Text
+  standardId      String?
+  productCategory String?
+  applicability   String?
+  outcome         ComplianceOutcome @default(POTENTIALLY_APPLICABLE)
+  authority       String            @default("BIS / Regulatory Authority")
+  sourceReference String            @default("Gazette / QCO Notification Reference")
+  effectiveFrom   DateTime?
+  effectiveTo     DateTime?
+  status          RuleStatus        @default(ACTIVE)
+  notes           String?           @db.Text
+  isDemo          Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  standard    Standard?              @relation(fields: [standardId], references: [id], onDelete: SetNull)
+  conditions  ComplianceCondition[]
+  evidences   ComplianceEvidence[]
+  evaluations ComplianceEvaluation[]
+
+  @@map("compliance_rules")
+}
+
+model ComplianceCondition {
+  id               String                      @id @default(uuid())
+  complianceRuleId String
+  field            String
+  operator         ComplianceConditionOperator @default(CONTAINS)
+  value            String
+  createdAt        DateTime                    @default(now())
+
+  complianceRule ComplianceRule @relation(fields: [complianceRuleId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_conditions")
+}
+
+model ComplianceEvidence {
+  id               String    @id @default(uuid())
+  complianceRuleId String
+  evidenceId       String?
+  sourceTitle      String
+  sourceReference  String
+  effectiveDate    DateTime?
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now())
+
+  complianceRule ComplianceRule @relation(fields: [complianceRuleId], references: [id], onDelete: Cascade)
+  evidence       Evidence?      @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+
+  @@map("compliance_evidence")
+}
+
+model ComplianceEvaluation {
+  id                  String            @id @default(uuid())
+  recommendationId    String
+  complianceRuleId    String?
+  outcome             ComplianceOutcome @default(POTENTIALLY_APPLICABLE)
+  matchedConditions   Json?
+  explanation         String            @db.Text
+  evidenceId          String?
+  requiresHumanReview Boolean           @default(true)
+  missingAttributes   String[]          @default([])
+  evaluatedAt         DateTime          @default(now())
+
+  recommendation Recommendation  @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  complianceRule ComplianceRule? @relation(fields: [complianceRuleId], references: [id], onDelete: SetNull)
+  evidence       Evidence?       @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+
+  @@map("compliance_evaluations")
+}
+
+model DataImportJob {
+  id              String          @id @default(uuid())
+  sourceName      String
+  sourceType      String          @default("CSV")
+  datasetVersion  String?
+  filename        String?
+  status          ImportJobStatus @default(PENDING)
+  recordsRead     Int             @default(0)
+  recordsCreated  Int             @default(0)
+  recordsUpdated  Int             @default(0)
+  recordsSkipped  Int             @default(0)
+  recordsFailed   Int             @default(0)
+  errorSummary    Json?
+  report          Json?
+  isDryRun        Boolean         @default(false)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime        @default(now())
+
+  importedRecords ImportedStandardRecord[]
+  standards       Standard[]
+  recommendations Recommendation[]
+
+  @@map("data_import_jobs")
+}
+
+model ImportedStandardRecord {
+  id                   String         @id @default(uuid())
+  importJobId          String
+  rawIdentifier        String
+  normalizedIdentifier String?
+  rawTitle             String?
+  rawData              Json
+  validationStatus     String         @default("VALID")
+  validationError      String?        @db.Text
+  createdAt            DateTime       @default(now())
+
+  importJob DataImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+
+  @@index([importJobId])
+  @@index([normalizedIdentifier])
+  @@map("imported_standard_records")
+}
+
+model StandardTerm {
+  id               String    @id @default(uuid())
+  term             String
+  normalizedTerm   String
+  language         String    @default("EN")
+  termType         String    @default("PRODUCT")
+  source           String    @default("MANUAL_VERIFIED")
+  standardId       String?
+  isVerified       Boolean   @default(true)
+  category         String?
+  sourceStandardId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  standard         Standard? @relation(fields: [standardId], references: [id], onDelete: SetNull)
+
+  @@unique([normalizedTerm, category])
+  @@index([term])
+  @@index([normalizedTerm])
+  @@index([language])
+  @@index([termType])
+  @@map("standard_terms")
+}
+
+model StandardEmbedding {
+  id          String   @id @default(uuid())
+  standardId  String   @unique
+  // embedding field removed - pgvector extension not available on this system
+  modelName   String   @default("text-embedding-3-small")
+  contentHash String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  standard    Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@index([contentHash])
+  @@map("standard_embeddings")
+}
+
+model EvaluationRun {
+  id             String             @id @default(uuid())
+  name           String
+  engineVersion  String             @default("hybrid-v1")
+  datasetVersion String             @default("2026.09")
+  retrievalMode  String?            @default("hybrid")
+  embeddingModel String?            @default("text-embedding-3-small")
+  totalCases     Int                @default(0)
+  completedCases Int                @default(0)
+  failedCases    Int                @default(0)
+  metrics        Json?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdBy      String?
+  createdAt      DateTime           @default(now())
+
+  results        EvaluationResult[]
+
+  @@map("evaluation_runs")
+}
+
+model EvaluationResult {
+  id                    String        @id @default(uuid())
+  evaluationRunId       String
+  caseId                String
+  status                String        @default("SUCCESS")
+  evaluationType        String        @default("STANDARD_RETRIEVAL")
+  verificationLevel     String?       @default("VERIFIED")
+  expectedOutcome       String?
+  actualOutcome         String?
+  requirement           String        @db.Text
+  language              String        @default("EN")
+  expectedStandardIds   Json          @default("[]")
+  retrievedStandardIds  Json          @default("[]")
+  topStandardId         String?
+  topMatchScore         Float?
+  rankOfExpected        Int?
+  retrievalMethod       Json?
+  clarificationExpected Boolean       @default(false)
+  clarificationActual   Boolean       @default(false)
+  evidenceAvailable     Boolean       @default(false)
+  errorCategory         String?
+  failureReason         String?       @db.Text
+  extractedAttributes   Json?
+  expectedAttributes    Json?
+  attributeMatches      Json?
+  evidenceCoverage      Json?
+  complianceOutcome     Json?
+  retrievalComparison   Json?
+  humanReviewDecision   String?
+  humanReviewNotes      String?       @db.Text
+  humanReviewerId       String?
+  humanReviewedAt       DateTime?
+  processingTimeMs      Int?
+  notes                 String?       @db.Text
+  createdAt             DateTime      @default(now())
+
+  evaluationRun         EvaluationRun @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationRunId])
+  @@index([caseId])
+  @@index([status])
+  @@index([errorCategory])
+  @@map("evaluation_results")
+}
+
+
