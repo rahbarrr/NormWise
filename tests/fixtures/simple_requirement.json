@@ -1,0 +1,12 @@
+{
+  "description": "Simple unambiguous pressure cooker procurement requirement",
+  "input": {
+    "text": "Procurement of stainless steel pressure cooker 5 litre capacity with safety valve for commercial canteen use",
+    "language": "en"
+  },
+  "expected": {
+    "primaryStandard": "IS 2347:2023",
+    "minConfidence": 80,
+    "status": "RECOMMENDED"
+  }
+}

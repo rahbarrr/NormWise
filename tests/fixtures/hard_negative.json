@@ -1,0 +1,11 @@
+{
+  "description": "Hard negative requirement that mentions lighting terms but specifies a non-standard device",
+  "input": {
+    "text": "Decorative LED festive string fairy lights for seasonal office celebration",
+    "language": "en"
+  },
+  "expected": {
+    "notRecommended": ["IS 10322 (Part 5/Sec 3):2012"],
+    "notes": "Must not recommend heavy duty industrial street lighting standard for decorative strings"
+  }
+}

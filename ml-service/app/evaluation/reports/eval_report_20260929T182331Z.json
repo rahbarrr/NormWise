@@ -1,0 +1,1384 @@
+{
+  "evaluation_metadata": {
+    "evaluation_date": "2026-09-29T18:23:31Z",
+    "model_name": "BAAI/bge-reranker-v2-m3",
+    "relevant_threshold": 1,
+    "threshold_note": "label >= relevant_threshold is treated as relevant for P@1, P@5, MRR"
+  },
+  "dataset_summary": {
+    "num_queries": 25,
+    "num_candidate_pairs": 94,
+    "avg_candidates_per_query": 3.76,
+    "categories": [
+      "Civil & Construction",
+      "Civil & Structural Steel",
+      "Components — Gaskets",
+      "Cookware & Utensils",
+      "Electrical & Lighting",
+      "Electrical Accessories",
+      "Fire Safety Equipment",
+      "Materials — Stainless Steel",
+      "No Standard Match",
+      "Personal Protective Equipment",
+      "Pumps & Water Supply",
+      "Solar Energy"
+    ],
+    "num_categories": 12,
+    "difficulty_distribution": {
+      "direct_match": 10,
+      "ambiguous_capacity": 1,
+      "ambiguous_wording": 1,
+      "application_ambiguity": 5,
+      "hard_negative": 1,
+      "product_vs_material": 3,
+      "multi_standard": 1,
+      "material_ambiguity": 1,
+      "no_match": 1,
+      "no_verified_match": 1
+    },
+    "label_distribution": {
+      "0": 50,
+      "1": 23,
+      "2": 21
+    },
+    "queries_with_no_relevant_candidates": [
+      "Q019",
+      "Q024"
+    ]
+  },
+  "aggregate_metrics": {
+    "num_queries": 25,
+    "num_candidate_pairs": 94,
+    "P@1": 0.84,
+    "P@5": 0.4553,
+    "MRR": 0.8733
+  },
+  "per_query_results": [
+    {
+      "query_id": "Q001",
+      "query": "Stainless steel pressure cooker 5 litre capacity for institutional kitchen with safety valve",
+      "category": "Cookware & Utensils",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.75,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q001-A",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.569301,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q001-B",
+          "standard_number": "IS 6911:2017",
+          "title": "Stainless Steel Plate, Sheet and Strip — Specification",
+          "predicted_score": 0.500358,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q001-C",
+          "standard_number": "IS 7466:1994",
+          "title": "Rubber Gaskets for Pressure Cookers — Specification",
+          "predicted_score": 0.500114,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q001-D",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.500005,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q002",
+      "query": "Stainless steel pressure cooker for commercial canteen",
+      "category": "Cookware & Utensils",
+      "difficulty": "ambiguous_capacity",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q002-A",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.70048,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q002-B",
+          "standard_number": "IS 6911:2017",
+          "title": "Stainless Steel Plate, Sheet and Strip — Specification",
+          "predicted_score": 0.500477,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q002-D",
+          "standard_number": "IS 1293:2019",
+          "title": "Plugs and Socket-Outlets of Rated Voltage up to and including 250 Volts and Rated Current up to and including 16 Amperes — Specification",
+          "predicted_score": 0.500024,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q002-C",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.500007,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q003",
+      "query": "Supply of pressure cooker for office canteen",
+      "category": "Cookware & Utensils",
+      "difficulty": "ambiguous_wording",
+      "p_at_1": 1.0,
+      "p_at_5": 0.6666666666666666,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q003-A",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.503262,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q003-B",
+          "standard_number": "IS 6911:2017",
+          "title": "Stainless Steel Plate, Sheet and Strip — Specification",
+          "predicted_score": 0.500009,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q003-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification (Second Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q004",
+      "query": "LED luminaires for street lighting 120W IP66 rated with surge protection 10kV for municipal highway",
+      "category": "Electrical & Lighting",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.8,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q004-A",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.56636,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q004-D",
+          "standard_number": "IS 16107 (Part 2/Sec 1):2012",
+          "title": "Luminaires Performance — Particular Requirements — General LED Luminaires",
+          "predicted_score": 0.504633,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q004-B",
+          "standard_number": "IS 15885 (Part 2/Sec 13):2012",
+          "title": "Safety of Lamp Controlgear — Electronic Controlgear for LED Modules",
+          "predicted_score": 0.500679,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q004-C",
+          "standard_number": "IS 16102 (Part 2):2017",
+          "title": "Self-Ballasted LED Lamps — Performance Requirements",
+          "predicted_score": 0.500277,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 5,
+          "candidate_id": "Q004-E",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q005",
+      "query": "LED street light for outdoor road installation",
+      "category": "Electrical & Lighting",
+      "difficulty": "application_ambiguity",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q005-A",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.627661,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q005-B",
+          "standard_number": "IS 16107 (Part 2/Sec 1):2012",
+          "title": "Luminaires Performance — Particular Requirements — General LED Luminaires",
+          "predicted_score": 0.50196,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q005-C",
+          "standard_number": "IS 16102 (Part 2):2017",
+          "title": "Self-Ballasted LED Lamps — Performance Requirements",
+          "predicted_score": 0.501009,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q005-D",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q006",
+      "query": "Decorative LED festive string fairy lights for seasonal office decoration",
+      "category": "Electrical & Lighting",
+      "difficulty": "hard_negative",
+      "p_at_1": 1.0,
+      "p_at_5": 0.3333333333333333,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q006-B",
+          "standard_number": "IS 16102 (Part 2):2017",
+          "title": "Self-Ballasted LED Lamps — Performance Requirements",
+          "predicted_score": 0.500074,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q006-A",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.500013,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q006-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q007",
+      "query": "Modular flush switches 16A 250V AC for government commercial complex",
+      "category": "Electrical Accessories",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q007-A",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.726135,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q007-B",
+          "standard_number": "IS 1293:2019",
+          "title": "Plugs and Socket-Outlets of Rated Voltage up to and including 250 Volts and Rated Current up to and including 16 Amperes — Specification",
+          "predicted_score": 0.510493,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q007-C",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.500009,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q007-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.500006,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q008",
+      "query": "3-pin shuttered socket outlets 16A for office building electrical fitting",
+      "category": "Electrical Accessories",
+      "difficulty": "product_vs_material",
+      "p_at_1": 1.0,
+      "p_at_5": 0.6666666666666666,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q008-A",
+          "standard_number": "IS 1293:2019",
+          "title": "Plugs and Socket-Outlets of Rated Voltage up to and including 250 Volts and Rated Current up to and including 16 Amperes — Specification",
+          "predicted_score": 0.714821,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q008-B",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.517179,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q008-C",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.500006,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q009",
+      "query": "Electrical switches and socket outlets for CPWD government building project",
+      "category": "Electrical Accessories",
+      "difficulty": "multi_standard",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q009-A",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.503566,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q009-B",
+          "standard_number": "IS 1293:2019",
+          "title": "Plugs and Socket-Outlets of Rated Voltage up to and including 250 Volts and Rated Current up to and including 16 Amperes — Specification",
+          "predicted_score": 0.502757,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q009-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.500008,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q009-C",
+          "standard_number": "IS 8034:2018",
+          "title": "Submersible Pumpsets — Specification (Third Revision)",
+          "predicted_score": 0.500007,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q010",
+      "query": "High strength deformed TMT steel bars Fe 500D grade 16mm and 20mm diameter for RCC bridge foundation",
+      "category": "Civil & Structural Steel",
+      "difficulty": "direct_match",
+      "p_at_1": 0.0,
+      "p_at_5": 0.25,
+      "reciprocal_rank": 0.5,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q010-A",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification (Second Revision)",
+          "predicted_score": 0.500267,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q010-C",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500047,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q010-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.500015,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q010-B",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q011",
+      "query": "Hollow steel rectangular sections for structural steel fabrication",
+      "category": "Civil & Structural Steel",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q011-A",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification (Second Revision)",
+          "predicted_score": 0.730102,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q011-C",
+          "standard_number": "IS 6911:2017",
+          "title": "Stainless Steel Plate, Sheet and Strip — Specification",
+          "predicted_score": 0.500197,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q011-B",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500042,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q011-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.500005,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q012",
+      "query": "Ordinary Portland Cement OPC 53 grade for high-strength RCC construction",
+      "category": "Civil & Construction",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q012-A",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.714272,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q012-B",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification (Second Revision)",
+          "predicted_score": 0.500018,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q012-C",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.500011,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q012-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.500005,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q013",
+      "query": "Non-percolating fire fighting delivery hose Type A for fire brigade use",
+      "category": "Fire Safety Equipment",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q013-A",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.706858,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q013-B",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification (Second Revision)",
+          "predicted_score": 0.500038,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q013-C",
+          "standard_number": "IS 8034:2018",
+          "title": "Submersible Pumpsets — Specification (Third Revision)",
+          "predicted_score": 0.500008,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q013-D",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q014",
+      "query": "Submersible pump set 5HP for deep tube well water supply",
+      "category": "Pumps & Water Supply",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.25,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q014-A",
+          "standard_number": "IS 8034:2018",
+          "title": "Submersible Pumpsets — Specification (Third Revision)",
+          "predicted_score": 0.677406,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q014-B",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification (Fourth Revision)",
+          "predicted_score": 0.500011,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q014-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500008,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q014-D",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q015",
+      "query": "Submersible water pump for Jal Jeevan Mission deep bore well village water supply",
+      "category": "Pumps & Water Supply",
+      "difficulty": "application_ambiguity",
+      "p_at_1": 1.0,
+      "p_at_5": 0.3333333333333333,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q015-A",
+          "standard_number": "IS 8034:2018",
+          "title": "Submersible Pumpsets — Specification (Third Revision)",
+          "predicted_score": 0.604586,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q015-B",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q015-C",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q016",
+      "query": "Crystalline silicon photovoltaic modules for solar power project",
+      "category": "Solar Energy",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q016-A",
+          "standard_number": "IS 14286:2010",
+          "title": "Crystalline Silicon Terrestrial Photovoltaic (PV) Modules — Design Qualification and Type Approval",
+          "predicted_score": 0.727491,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q016-D",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500009,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q016-C",
+          "standard_number": "IS 16102 (Part 2):2017",
+          "title": "Self-Ballasted LED Lamps — Performance Requirements",
+          "predicted_score": 0.500005,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q016-B",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q017",
+      "query": "Solar PV modules SECI project ALMM listed crystalline silicon panels",
+      "category": "Solar Energy",
+      "difficulty": "application_ambiguity",
+      "p_at_1": 1.0,
+      "p_at_5": 0.3333333333333333,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q017-A",
+          "standard_number": "IS 14286:2010",
+          "title": "Crystalline Silicon Terrestrial Photovoltaic (PV) Modules — Design Qualification and Type Approval",
+          "predicted_score": 0.671732,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q017-C",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500005,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q017-B",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q018",
+      "query": "Protective helmets for two-wheeler motorcycle riders",
+      "category": "Personal Protective Equipment",
+      "difficulty": "direct_match",
+      "p_at_1": 1.0,
+      "p_at_5": 0.25,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q018-A",
+          "standard_number": "IS 4151:2020",
+          "title": "Protective Helmets for Two Wheeler Riders (Fourth Revision)",
+          "predicted_score": 0.730859,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q018-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q018-B",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q018-D",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q019",
+      "query": "Safety helmet for road construction workers",
+      "category": "Personal Protective Equipment",
+      "difficulty": "application_ambiguity",
+      "p_at_1": 0.0,
+      "p_at_5": 0.0,
+      "reciprocal_rank": 0.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q019-A",
+          "standard_number": "IS 4151:2020",
+          "title": "Protective Helmets for Two Wheeler Riders (Fourth Revision)",
+          "predicted_score": 0.502979,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q019-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q019-B",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification (Sixth Revision)",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q020",
+      "query": "Stainless steel sheet material for food processing equipment fabrication",
+      "category": "Materials — Stainless Steel",
+      "difficulty": "material_ambiguity",
+      "p_at_1": 1.0,
+      "p_at_5": 0.75,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q020-A",
+          "standard_number": "IS 6911:2017",
+          "title": "Stainless Steel Plate, Sheet and Strip — Specification",
+          "predicted_score": 0.688784,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q020-B",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.510517,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q020-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500082,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q020-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification",
+          "predicted_score": 0.500006,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q021",
+      "query": "Rubber gasket sealing ring for pressure vessel lid",
+      "category": "Components — Gaskets",
+      "difficulty": "product_vs_material",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q021-A",
+          "standard_number": "IS 7466:1994",
+          "title": "Rubber Gaskets for Pressure Cookers — Specification",
+          "predicted_score": 0.716517,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q021-B",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification (Fifth Revision)",
+          "predicted_score": 0.500013,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q021-D",
+          "standard_number": "IS 8034:2018",
+          "title": "Submersible Pumpsets — Specification",
+          "predicted_score": 0.500006,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q021-C",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q022",
+      "query": "Electronic LED driver ballast for LED luminaire",
+      "category": "Electrical & Lighting",
+      "difficulty": "product_vs_material",
+      "p_at_1": 1.0,
+      "p_at_5": 0.75,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q022-A",
+          "standard_number": "IS 15885 (Part 2/Sec 13):2012",
+          "title": "Safety of Lamp Controlgear — Electronic Controlgear for LED Modules",
+          "predicted_score": 0.664877,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q022-B",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.521857,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q022-C",
+          "standard_number": "IS 16107 (Part 2/Sec 1):2012",
+          "title": "Luminaires Performance — Particular Requirements — General LED Luminaires",
+          "predicted_score": 0.501747,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q022-D",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q023",
+      "query": "General LED luminaires for indoor commercial installation performance requirements",
+      "category": "Electrical & Lighting",
+      "difficulty": "application_ambiguity",
+      "p_at_1": 1.0,
+      "p_at_5": 0.5,
+      "reciprocal_rank": 1.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q023-A",
+          "standard_number": "IS 16107 (Part 2/Sec 1):2012",
+          "title": "Luminaires Performance — Particular Requirements — General LED Luminaires",
+          "predicted_score": 0.730851,
+          "ground_truth_label": 2,
+          "is_relevant": true
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q023-B",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Luminaires for Road and Street Lighting",
+          "predicted_score": 0.502244,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q023-C",
+          "standard_number": "IS 15885 (Part 2/Sec 13):2012",
+          "title": "Safety of Lamp Controlgear — Electronic Controlgear for LED Modules",
+          "predicted_score": 0.500984,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q023-D",
+          "standard_number": "IS 4151:2020",
+          "title": "Protective Helmets for Two Wheeler Riders",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q024",
+      "query": "Fresh organic mangoes for export supply",
+      "category": "No Standard Match",
+      "difficulty": "no_match",
+      "p_at_1": 0.0,
+      "p_at_5": 0.0,
+      "reciprocal_rank": 0.0,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q024-B",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q024-C",
+          "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+          "title": "Luminaires — Particular Requirements — Road and Street Lighting",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q024-A",
+          "standard_number": "IS 2347:2023",
+          "title": "Domestic and Commercial Pressure Cookers — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "Q025",
+      "query": "Supply of modular switchgear for HV substation panel",
+      "category": "No Standard Match",
+      "difficulty": "no_verified_match",
+      "p_at_1": 0.0,
+      "p_at_5": 0.25,
+      "reciprocal_rank": 0.3333333333333333,
+      "ranked_candidates": [
+        {
+          "rank": 1,
+          "candidate_id": "Q025-A",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.500041,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 2,
+          "candidate_id": "Q025-B",
+          "standard_number": "IS 1293:2019",
+          "title": "Plugs and Socket-Outlets up to 250V and 16A",
+          "predicted_score": 0.500015,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        },
+        {
+          "rank": 3,
+          "candidate_id": "Q025-C",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification",
+          "predicted_score": 0.500012,
+          "ground_truth_label": 1,
+          "is_relevant": true
+        },
+        {
+          "rank": 4,
+          "candidate_id": "Q025-D",
+          "standard_number": "IS 636:2018",
+          "title": "Non-Percolating Flexible Fire Fighting Delivery Hose — Specification",
+          "predicted_score": 0.500006,
+          "ground_truth_label": 0,
+          "is_relevant": false
+        }
+      ]
+    }
+  ],
+  "failure_analysis": {
+    "total_failures": 6,
+    "failures": [
+      {
+        "failure_type": "rank_1_not_relevant",
+        "query_id": "Q010",
+        "query": "High strength deformed TMT steel bars Fe 500D grade 16mm and 20mm diameter for RCC bridge foundation",
+        "category": "Civil & Structural Steel",
+        "difficulty": "direct_match",
+        "rank_1_candidate": {
+          "candidate_id": "Q010-A",
+          "standard_number": "IS 4923:2017",
+          "title": "Hollow Steel Sections for Structural Use — Specification (Second Revision)",
+          "predicted_score": 0.500267,
+          "ground_truth_label": 0
+        },
+        "first_relevant_at_rank": 2,
+        "full_ranking": [
+          {
+            "rank": 1,
+            "standard_number": "IS 4923:2017",
+            "score": 0.500267,
+            "label": 0
+          },
+          {
+            "rank": 2,
+            "standard_number": "IS 269:2015",
+            "score": 0.500047,
+            "label": 1
+          },
+          {
+            "rank": 3,
+            "standard_number": "IS 636:2018",
+            "score": 0.500015,
+            "label": 0
+          },
+          {
+            "rank": 4,
+            "standard_number": "IS 2347:2023",
+            "score": 0.500004,
+            "label": 0
+          }
+        ]
+      },
+      {
+        "failure_type": "hard_negative_outranked_relevant",
+        "query_id": "Q010",
+        "query": "High strength deformed TMT steel bars Fe 500D grade 16mm and 20mm diameter for RCC bridge foundation",
+        "category": "Civil & Structural Steel",
+        "difficulty": "direct_match",
+        "outranking_negatives": [
+          {
+            "rank": 1,
+            "standard_number": "IS 4923:2017",
+            "score": 0.500267,
+            "label": 0
+          }
+        ],
+        "best_relevant_candidate": {
+          "rank": 2,
+          "standard_number": "IS 269:2015",
+          "score": 0.500047,
+          "label": 1
+        }
+      },
+      {
+        "failure_type": "rank_1_not_relevant",
+        "query_id": "Q019",
+        "query": "Safety helmet for road construction workers",
+        "category": "Personal Protective Equipment",
+        "difficulty": "application_ambiguity",
+        "rank_1_candidate": {
+          "candidate_id": "Q019-A",
+          "standard_number": "IS 4151:2020",
+          "title": "Protective Helmets for Two Wheeler Riders (Fourth Revision)",
+          "predicted_score": 0.502979,
+          "ground_truth_label": 0
+        },
+        "first_relevant_at_rank": null,
+        "full_ranking": [
+          {
+            "rank": 1,
+            "standard_number": "IS 4151:2020",
+            "score": 0.502979,
+            "label": 0
+          },
+          {
+            "rank": 2,
+            "standard_number": "IS 4923:2017",
+            "score": 0.500004,
+            "label": 0
+          },
+          {
+            "rank": 3,
+            "standard_number": "IS 269:2015",
+            "score": 0.500004,
+            "label": 0
+          }
+        ]
+      },
+      {
+        "failure_type": "rank_1_not_relevant",
+        "query_id": "Q024",
+        "query": "Fresh organic mangoes for export supply",
+        "category": "No Standard Match",
+        "difficulty": "no_match",
+        "rank_1_candidate": {
+          "candidate_id": "Q024-B",
+          "standard_number": "IS 269:2015",
+          "title": "Ordinary Portland Cement — Specification",
+          "predicted_score": 0.500004,
+          "ground_truth_label": 0
+        },
+        "first_relevant_at_rank": null,
+        "full_ranking": [
+          {
+            "rank": 1,
+            "standard_number": "IS 269:2015",
+            "score": 0.500004,
+            "label": 0
+          },
+          {
+            "rank": 2,
+            "standard_number": "IS 10322 (Part 5/Sec 3):2012",
+            "score": 0.500004,
+            "label": 0
+          },
+          {
+            "rank": 3,
+            "standard_number": "IS 2347:2023",
+            "score": 0.500004,
+            "label": 0
+          }
+        ]
+      },
+      {
+        "failure_type": "rank_1_not_relevant",
+        "query_id": "Q025",
+        "query": "Supply of modular switchgear for HV substation panel",
+        "category": "No Standard Match",
+        "difficulty": "no_verified_match",
+        "rank_1_candidate": {
+          "candidate_id": "Q025-A",
+          "standard_number": "IS 3854:1988",
+          "title": "Switches for Domestic and Similar Purposes — Specification",
+          "predicted_score": 0.500041,
+          "ground_truth_label": 0
+        },
+        "first_relevant_at_rank": 3,
+        "full_ranking": [
+          {
+            "rank": 1,
+            "standard_number": "IS 3854:1988",
+            "score": 0.500041,
+            "label": 0
+          },
+          {
+            "rank": 2,
+            "standard_number": "IS 1293:2019",
+            "score": 0.500015,
+            "label": 0
+          },
+          {
+            "rank": 3,
+            "standard_number": "IS 4923:2017",
+            "score": 0.500012,
+            "label": 1
+          },
+          {
+            "rank": 4,
+            "standard_number": "IS 636:2018",
+            "score": 0.500006,
+            "label": 0
+          }
+        ]
+      },
+      {
+        "failure_type": "hard_negative_outranked_relevant",
+        "query_id": "Q025",
+        "query": "Supply of modular switchgear for HV substation panel",
+        "category": "No Standard Match",
+        "difficulty": "no_verified_match",
+        "outranking_negatives": [
+          {
+            "rank": 1,
+            "standard_number": "IS 3854:1988",
+            "score": 0.500041,
+            "label": 0
+          },
+          {
+            "rank": 2,
+            "standard_number": "IS 1293:2019",
+            "score": 0.500015,
+            "label": 0
+          }
+        ],
+        "best_relevant_candidate": {
+          "rank": 3,
+          "standard_number": "IS 4923:2017",
+          "score": 0.500012,
+          "label": 1
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "description": "Validation fixture for checking currentness warning on superseded standards",
+  "input": {
+    "standardNumber": "IS 2347:2017",
+    "supersededBy": "IS 2347:2023"
+  },
+  "expected": {
+    "isCurrent": false,
+    "status": "SUPERSEDED",
+    "warning": "Standard IS 2347:2017 has been superseded by IS 2347:2023"
+  }
+}

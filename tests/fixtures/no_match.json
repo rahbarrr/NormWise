@@ -1,0 +1,11 @@
+{
+  "description": "Unrelated procurement specification with zero standard overlap",
+  "input": {
+    "text": "Fresh organic Alphonso mangoes, grade A export quality, 50 cartons",
+    "language": "en"
+  },
+  "expected": {
+    "status": "NO_MATCH",
+    "primaryRecommendation": null
+  }
+}

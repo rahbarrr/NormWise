@@ -1,0 +1,12 @@
+{
+  "description": "Ambiguous requirement with missing material or capacity specifications",
+  "input": {
+    "text": "Supply of standard cooker for office canteen",
+    "language": "en"
+  },
+  "expected": {
+    "status": "CLARIFICATION_REQUIRED",
+    "clarificationNeeded": true,
+    "missingAttributes": ["material", "capacity"]
+  }
+}
