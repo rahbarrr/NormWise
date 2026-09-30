@@ -3,7 +3,7 @@
  * Extracts structured procurement requirements from parsed document text,
  * detects contextual source references, and identifies ambiguity warnings.
  */
-import { extractDeterministicAttributes } from "./requirementService.js";
+import { extractDeterministicAttributes } from "../requirement/requirementService.js";
 
 /**
  * Locate source text snippet surrounding a matched value

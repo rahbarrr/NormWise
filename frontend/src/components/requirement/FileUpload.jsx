@@ -99,10 +99,10 @@ export const FileUpload = ({ file, onFileSelect, onFileRemove }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
         <div>
           <h4 className="text-sm font-semibold text-slate-900 tracking-tight">
-            Upload a technical specification
+            Upload a technical specification <span className="text-xs font-medium text-slate-500">(optional)</span>
           </h4>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Upload a procurement specification or tender document and extract relevant requirements.
+            Optional: upload a procurement specification or tender document when you want NormWise to extract requirements from source text.
           </p>
         </div>
         <Link

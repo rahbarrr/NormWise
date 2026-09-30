@@ -15,6 +15,15 @@ const __dirname = path.dirname(__filename);
 const NODE_ENV = process.env.NODE_ENV || "development";
 const isProduction = NODE_ENV === "production";
 const isTest = NODE_ENV === "test";
+const cleanEnvValue = (value = "") => {
+  const trimmed = String(value).trim();
+  return trimmed.replace(/^("|')(.*)\1$/, "$2");
+};
+const CLIENT_URL = cleanEnvValue(process.env.CLIENT_URL || "http://localhost:5173");
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || CLIENT_URL)
+  .split(",")
+  .map(cleanEnvValue)
+  .filter(Boolean);
 
 // The production API uses Supabase directly. DATABASE_URL remains optional for
 // isolated legacy Prisma utilities and is never required to start this API.
@@ -51,9 +60,8 @@ export const env = {
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   AUTH_SECRET: authSecret,
-  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
-  CORS_ORIGINS: (process.env.CORS_ORIGINS || process.env.CLIENT_URL || "")
-    .split(",").map((origin) => origin.trim()).filter(Boolean),
+  CLIENT_URL,
+  CORS_ORIGINS,
 
   // Cookie Security Settings
   AUTH_COOKIE_NAME: process.env.AUTH_COOKIE_NAME || "normwise_session",
@@ -75,9 +83,11 @@ export const env = {
   EMBEDDING_MODEL: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
   EMBEDDING_API_KEY: process.env.EMBEDDING_API_KEY || "",
 
-  LLM_PROVIDER: process.env.LLM_PROVIDER || "mock",
-  LLM_MODEL: process.env.LLM_MODEL || "gpt-4o-mini",
-  LLM_API_KEY: process.env.LLM_API_KEY || "",
+  LLM_PROVIDER: process.env.LLM_PROVIDER || (process.env.LLM_API_KEY || process.env.OPENAI_API_KEY ? "openai" : "mock"),
+  // Balanced default for requirement extraction: stronger instruction following
+  // than the ultra-cheap mini tier, while remaining cost-conscious.
+  LLM_MODEL: process.env.LLM_MODEL || "gpt-4.1-mini",
+  LLM_API_KEY: cleanEnvValue(process.env.LLM_API_KEY || process.env.OPENAI_API_KEY || ""),
 
   TRANSLATION_PROVIDER: process.env.TRANSLATION_PROVIDER || "local",
   TRANSLATION_MODEL: process.env.TRANSLATION_MODEL || "bhashini",
@@ -101,8 +111,8 @@ export const env = {
 
   // ML Service (FastAPI BGE Reranker) Configuration
   ML_SERVICE_URL: process.env.ML_SERVICE_URL || "http://localhost:8000",
-  ML_SERVICE_TIMEOUT_MS: parseInt(process.env.ML_SERVICE_TIMEOUT_MS || "15000", 10),
-  ML_RETRIEVAL_TOP_K: parseInt(process.env.ML_RETRIEVAL_TOP_K || "20", 10),
+  ML_SERVICE_TIMEOUT_MS: parseInt(process.env.ML_SERVICE_TIMEOUT_MS || "30000", 10),
+  ML_RETRIEVAL_TOP_K: parseInt(process.env.ML_RETRIEVAL_TOP_K || "10", 10),
   ML_RERANK_TOP_K: parseInt(process.env.ML_RERANK_TOP_K || "5", 10),
 };
 

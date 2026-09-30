@@ -23,7 +23,7 @@ export const RequirementTextarea = ({
           htmlFor="requirement-textarea"
           className="text-base font-semibold text-slate-900 tracking-tight block"
         >
-          Describe your requirement
+          Describe your requirement <span className="text-xs font-medium text-blue-700">(PDF optional)</span>
         </label>
         <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
           Include the product, material, intended use, capacity, application, or important technical characteristics.
@@ -48,7 +48,7 @@ export const RequirementTextarea = ({
         />
         <div className="flex items-center justify-between mt-1 px-1">
           <p className="text-[11px] text-slate-500 leading-relaxed max-w-lg">
-            Include as much technical detail as available. More specific requirements can improve the relevance of recommendations.
+            No PDF is required. NormWise will use AI to structure the details you provide and ask for clarification when critical information is missing.
           </p>
           <CharacterCounter current={value.length} max={maxLength} />
         </div>

@@ -1,7 +1,7 @@
 import prisma from "../config/db.js";
 import { saveFile } from "../services/documents/storageService.js";
 import { processDocument as runProcessPipeline } from "../services/documents/processingService.js";
-import { recommend } from "../services/recommendation/recommendationService.js";
+import { createSprint2Recommendation } from "../services/recommendation/sprint2RecommendationService.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { z } from "zod";
 
@@ -293,15 +293,17 @@ export const generateRecommendationFromDocument = async (req, res, next) => {
     }
 
     // Call Phase 10 Recommendation Engine
-    const recResult = await recommend(requirementText, {
-      userId: req.body.userId,
+    const recResult = await createSprint2Recommendation(requirementText, {
+      userId: req.body.userId || null,
+      // The document workflow stores documents in Prisma while Sprint 2
+      // recommendations currently live in Supabase. Do not pass the Prisma
+      // UUID into Supabase until both stores share the same document record.
     });
 
     // Link Recommendation to Document
     await prisma.document.update({
       where: { id },
       data: {
-        recommendationId: recResult.recommendationId,
         processingStatus: "COMPLETED",
       },
     });
@@ -309,14 +311,13 @@ export const generateRecommendationFromDocument = async (req, res, next) => {
     // Audit event
     await prisma.auditEvent.create({
       data: {
-        recommendationId: recResult.recommendationId,
         action: "RECOMMENDATION_STARTED",
-        details: `Recommendation initiated from document "${doc.originalFilename || doc.filename}". Matched primary: ${recResult.primaryRecommendation?.standardNumber || "None"}.`,
+        details: `Recommendation initiated from document "${doc.originalFilename || doc.filename}". Matched primary: ${recResult.primary_standard?.is_number || "None"}.`,
       },
     });
 
     return sendSuccess(res, {
-      recommendationId: recResult.recommendationId,
+      recommendationId: recResult.recommendation_id,
       documentId: id,
       recommendation: recResult,
     });

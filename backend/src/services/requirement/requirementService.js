@@ -33,7 +33,7 @@ const PRODUCT_PATTERNS = [
 const MATERIAL_PATTERNS = [
   { regex: /\b(?:stainless\s+steel\s+grade\s*304|aisi\s*304|ss\s*304|grade\s*304)\b/i, value: "Stainless Steel (AISI 304 / Grade 304)" },
   { regex: /\b(?:food-?grade\s+stainless\s+steel|stainless\s+steel)\b/i, value: "Stainless Steel" },
-  { regex: /\b(?:die-?cast\s+aluminum|anodized\s+aluminum|aluminum\s+alloy|aluminum)\b/i, value: "Die-cast Aluminum Housing" },
+  { regex: /\b(?:die-?cast\s+(?:aluminum|aluminium)|anodized\s+(?:aluminum|aluminium)|(?:aluminum|aluminium)\s+alloy|alumin(?:um|ium))\b/i, value: "Die-cast Aluminum Housing" },
   { regex: /\b(?:ceramic\s+glass|glass-?ceramic)\b/i, value: "Ceramic Glass Top" },
   { regex: /\b(?:reclaimed\s+(?:aged\s+)?burma\s+teak|teak\s+wood|timber)\b/i, value: "Aged Teak Wood" },
   { regex: /\b(?:high\s+density\s+polyethylene|hdpe|pe\s*100)\b/i, value: "High Density Polyethylene (PE-100)" },
@@ -53,7 +53,7 @@ const CAPACITY_PATTERNS = [
 
 const APPLICATION_PATTERNS = [
   { regex: /\b(?:institutional\s+canteen|canteen\s+kitchen|institutional\s+kitchen|hostel\s+mess)\b/i, value: "Institutional Canteen Kitchen" },
-  { regex: /\b(?:municipal\s+highway|highway|street\s+lighting|arterial\s+roads?|smart\s+city)\b/i, value: "Municipal Highway and Urban Arterial Roads" },
+  { regex: /\b(?:municipal\s+highway|highway|street\s+lighting|street\s+light(?:ing)?|arterial\s+roads?|outdoor\s+(?:roads?|walkways?)|roads?\s+and\s+walkways?|smart\s+city|campus\s+lighting)\b/i, value: "Municipal Highway and Urban Arterial Roads" },
   { regex: /\b(?:railway\s+base\s+kitchens?|irctc|railway\s+catering)\b/i, value: "Railway Base Kitchens Catering Operations" },
   { regex: /\b(?:hostels?|classrooms?|university\s+hostels?|educational\s+institutions?)\b/i, value: "Educational Institution Hostels and Classrooms" },
   { regex: /\b(?:substations?|33kv\s+substations?|operator\s+flooring)\b/i, value: "Electrical Substation Operator Flooring" },

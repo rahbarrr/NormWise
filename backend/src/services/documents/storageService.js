@@ -7,6 +7,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import supabase from "../../config/supabase.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +16,8 @@ const __dirname = path.dirname(__filename);
 export const UPLOAD_DIR = process.env.UPLOAD_DIR 
   ? path.resolve(process.env.UPLOAD_DIR)
   : path.resolve(__dirname, "../../uploads");
+export const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "procurement-documents";
+const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER || "supabase";
 
 // Ensure upload directory exists on module initialization
 async function ensureUploadDir() {
@@ -30,6 +33,11 @@ ensureUploadDir();
  * Health check: verify upload directory exists, is readable and writable
  */
 export async function checkStorageHealth() {
+  if (STORAGE_PROVIDER === "supabase") {
+    const { error } = await supabase.storage.from(STORAGE_BUCKET).list("", { limit: 1 });
+    return error ? { status: "STORAGE_UNAVAILABLE", writable: false, readable: false, provider: "supabase", bucket: STORAGE_BUCKET, error: error.message } : { status: "AVAILABLE", writable: true, readable: true, provider: "supabase", bucket: STORAGE_BUCKET };
+  }
+
   try {
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
     const probePath = path.join(UPLOAD_DIR, `.probe_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`);
@@ -63,20 +71,24 @@ export function sanitizeFilename(name = "") {
  * Save uploaded file buffer to protected disk storage
  */
 export async function saveFile({ buffer, originalname = "document.pdf", mimetype = "application/pdf" }) {
-  await ensureUploadDir();
-
   const safeOriginal = sanitizeFilename(originalname);
   const ext = path.extname(safeOriginal).toLowerCase() || (mimetype.includes("word") ? ".docx" : ".pdf");
   const randomSuffix = crypto.randomBytes(8).toString("hex");
   const storedFilename = `doc_${Date.now()}_${randomSuffix}${ext}`;
-  const fullPath = path.join(UPLOAD_DIR, storedFilename);
-
-  await fs.writeFile(fullPath, buffer);
-
-  const stats = await fs.stat(fullPath);
-
   // Normalize fileType (PDF or DOCX)
   const fileType = ext === ".docx" || mimetype.includes("word") ? "DOCX" : "PDF";
+
+  if (STORAGE_PROVIDER === "supabase") {
+    const storagePath = `documents/${storedFilename}`;
+    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(storagePath, buffer, { contentType: mimetype, upsert: false });
+    if (error) throw new Error(`Supabase Storage upload failed: ${error.message}`);
+    return { storagePath, filename: storedFilename, originalFilename: safeOriginal, fileSize: String(buffer.length), fileType };
+  }
+
+  await ensureUploadDir();
+  const fullPath = path.join(UPLOAD_DIR, storedFilename);
+  await fs.writeFile(fullPath, buffer);
+  const stats = await fs.stat(fullPath);
 
   return {
     storagePath: fullPath,
@@ -94,6 +106,12 @@ export async function getFile(storagePath) {
   if (!storagePath) {
     throw new Error("Storage path must be provided.");
   }
+  if (STORAGE_PROVIDER === "supabase" && !path.isAbsolute(storagePath)) {
+    const { data, error } = await supabase.storage.from(STORAGE_BUCKET).download(storagePath);
+    if (error) throw new Error(`Supabase Storage download failed: ${error.message}`);
+    return Buffer.from(await data.arrayBuffer());
+  }
+
   // Ensure the requested file is inside UPLOAD_DIR (prevent traversal)
   const resolved = path.resolve(storagePath);
   if (!resolved.startsWith(UPLOAD_DIR)) {
@@ -108,6 +126,10 @@ export async function getFile(storagePath) {
  */
 export async function deleteFile(storagePath) {
   if (!storagePath) return false;
+  if (STORAGE_PROVIDER === "supabase" && !path.isAbsolute(storagePath)) {
+    const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);
+    return !error;
+  }
   try {
     const resolved = path.resolve(storagePath);
     if (!resolved.startsWith(UPLOAD_DIR)) return false;
