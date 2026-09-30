@@ -3,10 +3,12 @@
  * Orchestrates file retrieval, native/OCR text extraction, quality checks,
  * structured requirement extraction, and state persistence.
  */
-import prisma from "../config/db.js";
-import { extractText } from "./documentExtractionService.js";
-import { extractRequirementsFromDocumentText } from "./documentRequirementService.js";
-import { detectLanguage } from "./languageDetectionService.js";
+import prisma from "../../config/db.js";
+import { extractText } from "./extractionService.js";
+import { extractRequirementsFromDocumentText } from "./requirementExtractService.js";
+import { detectLanguage } from "../requirement/languageDetectionService.js";
+import { getFile } from "./storageService.js";
+import { enrichRequirementsWithAi } from "../ai/requirementExtractionService.js";
 
 export async function processDocument(documentId) {
   const document = await prisma.document.findUnique({
@@ -29,7 +31,8 @@ export async function processDocument(documentId) {
     }
 
     // 1-6. Extract text (PDF/DOCX/OCR fallback)
-    const extractionResult = await extractText(document.storagePath, document.fileType);
+    const fileBuffer = await getFile(document.storagePath);
+    const extractionResult = await extractText(fileBuffer, document.fileType);
 
     // Phase 16: Detect Language of extracted document text
     const langDetection = detectLanguage(extractionResult.text || "");
@@ -71,10 +74,17 @@ export async function processDocument(documentId) {
     }
 
     // 9. Extract procurement requirements
-    const requirementResult = extractRequirementsFromDocumentText(extractionResult.text, {
+    const deterministicRequirements = extractRequirementsFromDocumentText(extractionResult.text, {
       pageCount: extractionResult.pageCount,
       pages: extractionResult.pages || [],
     });
+    let requirementResult;
+    try {
+      requirementResult = await enrichRequirementsWithAi(extractionResult.text, deterministicRequirements);
+    } catch (aiError) {
+      console.warn(`[DocumentProcessingService] AI extraction unavailable; using deterministic extraction: ${aiError.message}`);
+      requirementResult = { ...deterministicRequirements, ai: { used: false, provider: "fallback", reason: aiError.message } };
+    }
 
     // 10. Update Document with extracted requirements
     await prisma.document.update({
@@ -90,7 +100,7 @@ export async function processDocument(documentId) {
       data: {
         recommendationId: document.recommendationId || null,
         action: "REQUIREMENTS_EXTRACTED",
-        details: `Document "${document.originalFilename || document.filename}" processed. Extracted product: "${requirementResult.product || "None"}", material: "${requirementResult.material || "None"}" (${extractionResult.extractionMethod}, quality: ${extractionResult.quality}).`,
+        details: `Document "${document.originalFilename || document.filename}" processed. Extracted product: "${requirementResult.product || "None"}", material: "${requirementResult.material || "None"}" (AI used: ${requirementResult.ai?.used ? "yes" : "no"}; ${extractionResult.extractionMethod}, quality: ${extractionResult.quality}).`,
       },
     });
 

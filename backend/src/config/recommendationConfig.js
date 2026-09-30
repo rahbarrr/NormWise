@@ -31,9 +31,9 @@ export const RETRIEVAL_LIMITS = {
 };
 
 export const ML_RERANKER_CONFIG = {
-  RETRIEVAL_TOP_K: parseInt(process.env.ML_RETRIEVAL_TOP_K || "20", 10),
+  RETRIEVAL_TOP_K: parseInt(process.env.ML_RETRIEVAL_TOP_K || "10", 10),
   RERANK_TOP_K: parseInt(process.env.ML_RERANK_TOP_K || "5", 10),
-  TIMEOUT_MS: parseInt(process.env.ML_SERVICE_TIMEOUT_MS || "5000", 10),
+  TIMEOUT_MS: parseInt(process.env.ML_SERVICE_TIMEOUT_MS || "30000", 10),
   DEFAULT_URL: process.env.ML_SERVICE_URL || "http://localhost:8000",
 };
 

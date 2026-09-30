@@ -20,7 +20,14 @@ import {
   EXAMPLE_REQUIREMENTS_PHASE2,
   extractSimulatedAttributes,
 } from "../../utils/mock/mockRequirements";
-import { runRecommendationEngine } from "../../services/api";
+import {
+  runRecommendationEngine,
+  uploadDocumentFile,
+  processDocument,
+  getDocumentRequirements,
+  recommendFromDocument,
+  adaptBackendRecommendation,
+} from "../../services/api";
 
 export const Recommend = () => {
   const [searchParams] = useSearchParams();
@@ -118,23 +125,38 @@ export const Recommend = () => {
       return;
     }
 
-    const targetQuery = requirementText.trim()
-      ? requirementText
-      : `Specification: ${uploadedFile.name}`;
-
     setIsAnalyzing(true);
     setValidationError("");
 
     try {
-      const apiResult = await runRecommendationEngine(targetQuery);
+      let apiResult;
+      let targetQuery = requirementText.trim();
+
+      if (uploadedFile) {
+        const uploaded = await uploadDocumentFile(uploadedFile);
+        await processDocument(uploaded.documentId);
+        const extracted = await getDocumentRequirements(uploaded.documentId);
+        const requirements = extracted.requirements || {};
+        setExtractedAttributes(requirements);
+        targetQuery = requirements.requirementText || targetQuery || uploadedFile.name;
+        const documentRecommendation = await recommendFromDocument(uploaded.documentId, {
+          requirements,
+          requirementText: targetQuery,
+        });
+        apiResult = documentRecommendation.recommendation;
+      } else {
+        apiResult = await runRecommendationEngine(targetQuery);
+      }
+
+      const adaptedResult = adaptBackendRecommendation(apiResult);
       sessionStorage.setItem("normwise:lastRecommendation", JSON.stringify({
-        apiResponse: apiResult,
+        apiResponse: adaptedResult,
         requirementText: targetQuery,
         savedAt: new Date().toISOString(),
       }));
       navigate("/results", {
         state: {
-          apiResponse: apiResult,
+          apiResponse: adaptedResult,
           requirementText: targetQuery,
           file: uploadedFile ? { name: uploadedFile.name, size: uploadedFile.size } : null,
         },

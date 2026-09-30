@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import apiRouter from "./routes/index.js";
+import documentsRouter from "./routes/documents.routes.js";
 import env from "./config/env.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { csrfProtection } from "./middleware/csrfMiddleware.js";
@@ -72,6 +73,7 @@ app.use("/api", csrfProtection);
 
 // Mount REST API
 app.use("/api", apiRouter);
+app.use("/api/documents", documentsRouter);
 
 // 404 Handler
 app.use(notFoundHandler);

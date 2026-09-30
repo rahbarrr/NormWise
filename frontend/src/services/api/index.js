@@ -269,6 +269,12 @@ export async function runRecommendationEngine(requirementText) {
 /** Normalize the verified POST /api/recommend response for the existing UI. */
 export function adaptBackendRecommendation(response) {
   if (!response) return null;
+  // The requirement page stores the normalized UI shape in navigation state
+  // and sessionStorage. Keep this adapter idempotent so the results page can
+  // safely consume either the raw backend payload or that normalized shape.
+  if (response.recommendedStandard && !response.primary_standard) {
+    return response;
+  }
   const primary = response.primary_standard || null;
   const confidenceScore = Number(response.confidence?.score || 0);
   const confidenceState = response.confidence?.state || "no_confident_match";
@@ -315,6 +321,13 @@ export function adaptBackendRecommendation(response) {
     confidenceState,
     currentnessStatus: primary?.status || "UNKNOWN",
     certification: primary?.certification || null,
+    edition: primary?.edition || null,
+    revision: primary?.revision || null,
+    sourceName: primary?.source_name || primary?.sourceName || null,
+    sourceReference: primary?.source_reference || primary?.sourceReference || null,
+    sourceUrl: primary?.source_url || primary?.sourceUrl || null,
+    scope: primary?.scope || null,
+    technicalAttributes: primary?.technical_attributes || primary?.technicalAttributes || {},
     status: primary ? (confidenceState === "high_confidence" ? "High confidence" : "Review required") : "No confident match",
     rawStatus: confidenceState,
     reviewRequired: confidenceState === "review_required",
@@ -330,6 +343,7 @@ export function adaptBackendRecommendation(response) {
     matchReasons: primary ? ["Matched against real standards returned by the backend."] : [],
     scoreBreakdown: null,
     summary: null,
+    pipeline: response.pipeline || null,
     isDemoDataset: false,
   };
 }

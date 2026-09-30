@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
-import { normalizeDocumentText, evaluateExtractionQuality } from "./textNormalizationService.js";
+import { normalizeDocumentText, evaluateExtractionQuality } from "../requirement/textNormalizationService.js";
 import { extractTextWithOCR, isOcrEnabled } from "./ocrService.js";
 
 /**
@@ -63,22 +63,22 @@ export async function extractDocxText(bufferOrPath) {
 /**
  * High-level extractor dispatcher
  */
-export async function extractText(filePath, fileType = "PDF") {
-  const ext = path.extname(filePath).toLowerCase();
+export async function extractText(bufferOrPath, fileType = "PDF") {
+  const ext = Buffer.isBuffer(bufferOrPath) ? "" : path.extname(bufferOrPath).toLowerCase();
   const isDocx = fileType.toUpperCase() === "DOCX" || ext === ".docx";
 
   let extracted;
   if (isDocx) {
-    extracted = await extractDocxText(filePath);
+    extracted = await extractDocxText(bufferOrPath);
   } else {
-    extracted = await extractPdfText(filePath);
+    extracted = await extractPdfText(bufferOrPath);
   }
 
   // Scanned PDF detection: if text quality is LOW in a PDF, attempt OCR fallback
   if (!isDocx && extracted.quality === "LOW") {
     if (isOcrEnabled()) {
-      console.log(`[DocumentExtractionService] Low quality text detected. Running OCR on ${filePath}...`);
-      const ocrResult = await extractTextWithOCR(filePath);
+      console.log("[DocumentExtractionService] Low quality text detected. Running OCR on uploaded document...");
+      const ocrResult = await extractTextWithOCR(bufferOrPath);
       if (ocrResult.text && ocrResult.text.length > extracted.text.length) {
         return {
           text: normalizeDocumentText(ocrResult.text),

@@ -40,6 +40,8 @@ server/backups/
 # Temporary files and generated output
 tmp/
 output/
+.playwright-cli/
+tmp-standards.json
 
 # Python
 __pycache__/

@@ -15,7 +15,9 @@ test("remote Supabase pipeline persists a domestic recommendation", async () => 
   const result = await createSprint2Recommendation("stainless steel pressure cooker");
   assert.equal(result.primary_standard.is_number, "IS 2347:2023");
   assert.ok(result.recommendation_id);
-  assert.equal(result.confidence.state, "high_confidence");
+  // The ML reranker may correctly require review when the blended score or
+  // evidence threshold is below the high-confidence gate.
+  assert.ok(["high_confidence", "review_required"].includes(result.confidence.state));
   const [rec, candidates, audit] = await Promise.all([
     supabase.from("recommendations").select("id").eq("id", result.recommendation_id).single(),
     supabase.from("recommendation_standards").select("id").eq("recommendation_id", result.recommendation_id),

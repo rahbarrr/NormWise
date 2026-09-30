@@ -18,6 +18,8 @@ import { getCertificationDetails } from "../certification/certificationService.j
 import { collectEvidenceForStandard } from "../evidence/evidenceService.js";
 import { generateGroundedExplanation } from "./explanationService.js";
 import { complianceRuleService } from "../complianceRuleService.js";
+import { extractDeterministicAttributes } from "../requirement/requirementService.js";
+import { enrichRequirementsWithAi } from "../ai/requirementExtractionService.js";
 import {
   RECOMMENDATION_THRESHOLDS,
   RETRIEVAL_LIMITS,
@@ -45,11 +47,50 @@ export async function recommend(requirementText, options = {}) {
 
   // 2. Multilingual Normalization & Structured Attribute Extraction (Phase 16)
   const multilingual = await normalizeRequirementMultilingual(cleanText, options.language);
-  const cleanSearchText = multilingual.searchText || cleanText;
-  const extracted = {
+  let cleanSearchText = multilingual.searchText || cleanText;
+  let extracted = {
     ...multilingual.extractedAttributes,
     technicalCharacteristics: multilingual.extractedAttributes?.technicalCharacteristics || [],
   };
+
+  // Text-only recommendations use the same AI extraction contract as uploaded
+  // documents. AI may normalize explicit facts, but it must not invent missing
+  // procurement requirements; missing details remain clarification questions.
+  if (options.aiExtraction !== false) {
+    try {
+      const aiExtracted = await enrichRequirementsWithAi(
+        cleanText,
+        extractDeterministicAttributes(cleanText)
+      );
+      extracted = {
+        ...extracted,
+        ...aiExtracted,
+        technicalCharacteristics: [
+          ...new Set([
+            ...(extracted.technicalCharacteristics || []),
+            ...(aiExtracted.technicalCharacteristics || []),
+          ]),
+        ],
+        clarifyingQuestions: aiExtracted.clarifyingQuestions || extracted.clarifyingQuestions || [],
+      };
+      // Add normalized AI fields to retrieval without replacing the user's
+      // original wording, improving matches for synonyms and terse requests.
+      cleanSearchText = [
+        cleanSearchText,
+        extracted.product,
+        extracted.material,
+        extracted.capacity,
+        extracted.application,
+        ...(extracted.technicalCharacteristics || []),
+      ].filter(Boolean).join(" ");
+    } catch (error) {
+      console.warn(`[RecommendationEngine] AI text extraction unavailable; using deterministic extraction: ${error.message}`);
+      extracted = {
+        ...extracted,
+        ai: { used: false, provider: "none", reason: "AI extraction failed; deterministic extraction used" },
+      };
+    }
+  }
 
   // 3-5. Retrieve & merge candidates using search text (Structured + PostgreSQL FTS + pgvector)
   const retrievedCandidates = await retrieveCandidates(cleanSearchText, extracted);

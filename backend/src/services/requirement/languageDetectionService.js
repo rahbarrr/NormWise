@@ -4,7 +4,7 @@
  * Never guesses silently when confidence is low; flags UNKNOWN for user clarification.
  */
 
-import { SUPPORTED_LANGUAGES, normalizeLanguageCode } from "../config/languages.js";
+import { SUPPORTED_LANGUAGES, normalizeLanguageCode } from "../../config/languages.js";
 
 // Distinctive script Unicode block definitions
 const SCRIPT_RANGES = [

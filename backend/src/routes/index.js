@@ -2,6 +2,7 @@ import { Router } from "express";
 import { handleSprint2Recommend } from "../controllers/sprint2Recommend.controller.js";
 import env from "../config/env.js";
 import supabase from "../config/supabase.js";
+import { checkStorageHealth } from "../services/documents/storageService.js";
 
 const apiRouter = Router();
 
@@ -10,12 +11,18 @@ apiRouter.get("/health", (req, res) => {
 });
 
 apiRouter.get("/health/ready", async (req, res) => {
-  const readiness = { status: "ready", database: "ok", storage: "not_required" };
+  const readiness = { status: "ready", database: "ok", storage: "ok" };
   const { error } = await supabase.from("standards").select("id").limit(1);
   if (error) {
     readiness.status = "unavailable";
     readiness.database = "error";
     return res.status(503).json(readiness);
+  }
+  const storage = await checkStorageHealth();
+  if (storage.status !== "AVAILABLE") {
+    readiness.status = "unavailable";
+    readiness.storage = "error";
+    return res.status(503).json({ ...readiness, storageDetails: storage });
   }
   return res.status(200).json(readiness);
 });
